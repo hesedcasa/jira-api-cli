@@ -31,7 +31,7 @@
   "author": "Hesed",
   "license": "Apache-2.0",
   "dependencies": {
-    "@toon-format/toon": "^2.0.0",
+    "@toon-format/toon": "^2.0.1",
     "jira.js": "^4.0.1",
     "yaml": "^2.8.1"
   },

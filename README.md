@@ -357,21 +357,9 @@ npx jira-api-cli test-connection
 - Check that your Jira account has access to the project/issue
 - Some operations require specific Jira permissions
 
-## Contributing
-
-Contributions are welcome! Please see [CONTRIBUTING.md](CONTRIBUTING.md) for details.
-
 ## License
 
 Apache-2.0
-
-## Links
-
-- [npm package](https://www.npmjs.com/package/jira-api-cli)
-- [GitHub repository](https://github.com/hesedcasa/jira-api-cli)
-- [Issue tracker](https://github.com/hesedcasa/jira-api-cli/issues)
-- [Jira API Documentation](https://developer.atlassian.com/cloud/jira/platform/rest/v3/)
-- [jira.js Library](https://github.com/MrRefactoring/jira.js)
 
 ## Acknowledgments
 

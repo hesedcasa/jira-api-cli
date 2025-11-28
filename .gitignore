@@ -10,7 +10,7 @@ build/
 .env
 .env.local
 .env.*.local
-jira-connector.local.md
+*.local.md
 
 # Logs
 logs/

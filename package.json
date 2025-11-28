@@ -1,6 +1,6 @@
 {
   "name": "jira-api-cli",
-  "version": "0.0.0",
+  "version": "1.0.0",
   "description": "A powerful command-line interface for Jira API interaction with support for issues, projects, boards, and multiple output formats",
   "main": "dist/index.js",
   "bin": {

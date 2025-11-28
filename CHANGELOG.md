@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.0.1](https://github.com/hesedcasa/jira-api-cli/compare/jira-api-cli-v1.0.0...jira-api-cli-v1.0.1) (2025-11-28)
+
+
+### 📄 Documentation
+
+* update document ([bcc8e8e](https://github.com/hesedcasa/jira-api-cli/commit/bcc8e8e210cd2862063184fb84621cc0bbb79dc2))
+
 ## 1.0.0 (2025-11-28)
 
 

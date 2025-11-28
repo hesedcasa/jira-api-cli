@@ -152,7 +152,6 @@ describe('jira-client (integration)', () => {
 
       expect(result.success).toBe(true);
       expect(result.data).toHaveLength(2);
-      expect(result.result).toContain('Projects (2 total)');
       expect(result.result).toContain('TEST');
       expect(result.result).toContain('DEMO');
     });
@@ -171,7 +170,8 @@ describe('jira-client (integration)', () => {
 
       expect(result.success).toBe(true);
       expect(result.data).toHaveProperty('key', 'TEST');
-      expect(result.result).toContain('Project Details');
+      expect(result.result).toContain('TEST');
+      expect(result.result).toContain('Test Project');
     });
   });
 
@@ -181,7 +181,8 @@ describe('jira-client (integration)', () => {
 
       expect(result.success).toBe(true);
       expect(result.data).toHaveLength(2);
-      expect(result.result).toContain('Issues (2 total');
+      expect(result.result).toContain('TEST-1');
+      expect(result.result).toContain('TEST-2');
     });
 
     it('should list issues with JQL query', async () => {
@@ -204,7 +205,8 @@ describe('jira-client (integration)', () => {
 
       expect(result.success).toBe(true);
       expect(result.data).toHaveProperty('key', 'TEST-1');
-      expect(result.result).toContain('Issue Details');
+      expect(result.result).toContain('TEST-1');
+      expect(result.result).toContain('Test issue');
     });
   });
 
@@ -219,8 +221,8 @@ describe('jira-client (integration)', () => {
       const result = await createIssue('test', fields, 'json');
 
       expect(result.success).toBe(true);
-      expect(result.result).toContain('Issue created successfully');
       expect(result.result).toContain('TEST-123');
+      expect(result.data).toHaveProperty('key', 'TEST-123');
     });
 
     it('should return created issue data', async () => {
@@ -294,8 +296,8 @@ describe('jira-client (integration)', () => {
       const result = await getUser('test', undefined, undefined, 'json');
 
       expect(result.success).toBe(true);
-      expect(result.result).toContain('Current User Details');
       expect(result.data).toHaveProperty('accountId', 'current');
+      expect(result.result).toContain('current');
     });
   });
 

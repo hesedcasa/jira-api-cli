@@ -305,7 +305,8 @@ describe('JiraUtil', () => {
 
       expect(result.success).toBe(true);
       expect(result.data).toHaveLength(2);
-      expect(result.result).toContain('Projects (2 total)');
+      expect(result.result).toContain('PROJ');
+      expect(result.result).toContain('TEST');
     });
 
     it('getProject should return project details', async () => {
@@ -317,7 +318,8 @@ describe('JiraUtil', () => {
 
       expect(result.success).toBe(true);
       expect(result.data).toEqual(mockProject);
-      expect(result.result).toContain('Project Details');
+      expect(result.result).toContain('PROJ');
+      expect(result.result).toContain('Project 1');
     });
 
     it('listIssues should return formatted issues', async () => {
@@ -341,7 +343,8 @@ describe('JiraUtil', () => {
 
       expect(result.success).toBe(true);
       expect(result.data).toHaveLength(1);
-      expect(result.result).toContain('Issues (1 total');
+      expect(result.result).toContain('PROJ-1');
+      expect(result.result).toContain('Test issue');
     });
 
     it('createIssue should return created issue', async () => {
@@ -354,8 +357,8 @@ describe('JiraUtil', () => {
       const result = await jiraUtil.createIssue('test', { summary: 'New issue' }, 'json');
 
       expect(result.success).toBe(true);
-      expect(result.result).toContain('Issue created successfully');
       expect(result.result).toContain('PROJ-123');
+      expect(result.data).toHaveProperty('key', 'PROJ-123');
     });
 
     it('updateIssue should return success message', async () => {
@@ -424,7 +427,8 @@ describe('JiraUtil', () => {
       const result = await jiraUtil.getUser('test', undefined, undefined, 'json');
 
       expect(result.success).toBe(true);
-      expect(result.result).toContain('Current User Details');
+      expect(result.data).toEqual(mockUser);
+      expect(result.result).toContain('current');
     });
 
     it('getUser should search by username', async () => {

@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.0.2](https://github.com/hesedcasa/jira-api-cli/compare/jira-api-cli-v1.0.1...jira-api-cli-v1.0.2) (2025-11-29)
+
+
+### 📄 Documentation
+
+* remove table as a format option ([c95c9b0](https://github.com/hesedcasa/jira-api-cli/commit/c95c9b0fc6d0bd11f12a158e8dfbb00720e09fe7))
+
 ## [1.0.1](https://github.com/hesedcasa/jira-api-cli/compare/jira-api-cli-v1.0.0...jira-api-cli-v1.0.1) (2025-11-28)
 
 

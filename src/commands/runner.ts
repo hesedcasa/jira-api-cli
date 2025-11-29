@@ -1,4 +1,5 @@
 import {
+  addComment,
   clearClients,
   createIssue,
   deleteIssue,
@@ -74,6 +75,14 @@ export const runCommand = async (
           process.exit(1);
         }
         result = await updateIssue(profile, args.issueIdOrKey, args.fields);
+        break;
+
+      case 'add-comment':
+        if (!args.issueIdOrKey || !args.body) {
+          console.error('ERROR: "issueIdOrKey" and "body" parameters are required');
+          process.exit(1);
+        }
+        result = await addComment(profile, args.issueIdOrKey, args.body, format);
         break;
 
       case 'delete-issue':

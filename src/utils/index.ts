@@ -8,6 +8,7 @@ export {
   getIssue,
   createIssue,
   updateIssue,
+  addComment,
   deleteIssue,
   getUser,
   testConnection,

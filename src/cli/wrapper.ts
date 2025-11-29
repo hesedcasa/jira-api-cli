@@ -3,6 +3,7 @@ import readline from 'readline';
 import { getCurrentVersion, printAvailableCommands, printCommandDetail } from '../commands/index.js';
 import { COMMANDS } from '../config/index.js';
 import {
+  addComment,
   clearClients,
   createIssue,
   deleteIssue,
@@ -205,6 +206,15 @@ export class wrapper {
             return;
           }
           result = await updateIssue(profile, args.issueIdOrKey, args.fields);
+          break;
+
+        case 'add-comment':
+          if (!args.issueIdOrKey || !args.body) {
+            console.error('ERROR: "issueIdOrKey" and "body" parameters are required');
+            this.rl.prompt();
+            return;
+          }
+          result = await addComment(profile, args.issueIdOrKey, args.body, format);
           break;
 
         case 'delete-issue':

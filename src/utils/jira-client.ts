@@ -115,6 +115,23 @@ export async function updateIssue(
 }
 
 /**
+ * Add a comment to an issue
+ * @param profile - Jira profile name
+ * @param issueIdOrKey - Issue ID or key
+ * @param body - Comment text content
+ * @param format - Output format (json, toon)
+ */
+export async function addComment(
+  profile: string,
+  issueIdOrKey: string,
+  body: string,
+  format: 'json' | 'toon' = 'json'
+): Promise<ApiResult> {
+  const jira = await initJira();
+  return await jira.addComment(profile, issueIdOrKey, body, format);
+}
+
+/**
  * Delete an issue
  * @param profile - Jira profile name
  * @param issueIdOrKey - Issue ID or key

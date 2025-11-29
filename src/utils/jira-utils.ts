@@ -242,6 +242,36 @@ export class JiraUtil {
   }
 
   /**
+   * Add a comment to an issue
+   */
+  async addComment(
+    profileName: string,
+    issueIdOrKey: string,
+    body: string,
+    format: 'json' | 'toon' = 'json'
+  ): Promise<ApiResult> {
+    try {
+      const client = this.getClient(profileName);
+      const response = await client.issueComments.addComment({
+        issueIdOrKey,
+        comment: body,
+      });
+
+      return {
+        success: true,
+        data: response,
+        result: this.formatResult(response, format),
+      };
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      return {
+        success: false,
+        error: `ERROR: ${errorMessage}`,
+      };
+    }
+  }
+
+  /**
    * Delete an issue
    */
   async deleteIssue(profileName: string, issueIdOrKey: string): Promise<ApiResult> {

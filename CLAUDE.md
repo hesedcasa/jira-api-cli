@@ -110,7 +110,7 @@ tests/
 - `jira-utils.ts` - Core Jira utility class
   - `JiraUtil` class - Client pooling and API calls
   - Implements all 10 Jira commands
-  - Formats results as table, JSON or TOON
+  - Formats results as JSON or TOON
 
 ### Configuration System
 
@@ -254,7 +254,7 @@ npx jira-api-cli --version         # Show version
 - Core Jira API interaction logic
 - Client pooling per profile
 - API call execution
-- Result formatting (table, JSON, TOON)
+- Result formatting (JSON, TOON)
 - All 10 command implementations
 
 ### Argument Parser (`utils/argParser.ts`)
@@ -331,7 +331,7 @@ tests/
 2. **ES2022 Modules**: Project uses `"type": "module"` - no CommonJS
 3. **API Authentication**: Uses Jira API tokens with basic authentication
 4. **Multi-Profile**: Supports multiple Jira instances (cloud, staging, etc.)
-5. **Flexible Output**: Table, JSON or TOON formats for different use cases
+5. **Flexible Output**: JSON or TOON formats for different use cases
 6. **Client Pooling**: Reuses clients per profile for better performance
 
 ## Commit Message Convention

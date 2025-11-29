@@ -41,7 +41,7 @@ export const COMMANDS_DETAIL: string[] = [
   `
 Parameters:
 - profile (optional): string - Jira profile name (default: configured default profile)
-- format (optional): string - Output format: table, json, or toon (default: json)
+- format (optional): string - Output format: json or toon (default: json)
 
 Example:
 list-projects '{"profile":"cloud","format":"json"}'`,
@@ -49,7 +49,7 @@ list-projects '{"profile":"cloud","format":"json"}'`,
 Parameters:
 - projectIdOrKey (required): string - Project ID or project key
 - profile (optional): string - Jira profile name (default: configured default profile)
-- format (optional): string - Output format: table, json, or toon (default: json)
+- format (optional): string - Output format: json or toon (default: json)
 
 Example:
 get-project '{"projectIdOrKey":"PROJ","profile":"cloud","format":"json"}'`,
@@ -59,7 +59,7 @@ Parameters:
 - maxResults (optional): number - Maximum number of results (default: 50)
 - startAt (optional): number - Starting index for pagination (default: 0)
 - profile (optional): string - Jira profile name (default: configured default profile)
-- format (optional): string - Output format: table, json, or toon (default: json)
+- format (optional): string - Output format: json or toon (default: json)
 
 Example:
 list-issues '{"jql":"project = PROJ AND status = Open","maxResults":10,"profile":"cloud","format":"json"}'`,
@@ -67,7 +67,7 @@ list-issues '{"jql":"project = PROJ AND status = Open","maxResults":10,"profile"
 Parameters:
 - issueIdOrKey (required): string - Issue ID or issue key
 - profile (optional): string - Jira profile name (default: configured default profile)
-- format (optional): string - Output format: table, json, or toon (default: json)
+- format (optional): string - Output format: json or toon (default: json)
 
 Example:
 get-issue '{"issueIdOrKey":"PROJ-123","profile":"cloud","format":"json"}'`,
@@ -75,7 +75,7 @@ get-issue '{"issueIdOrKey":"PROJ-123","profile":"cloud","format":"json"}'`,
 Parameters:
 - fields (required): object - Issue fields including summary, project, issuetype, etc.
 - profile (optional): string - Jira profile name (default: configured default profile)
-- format (optional): string - Output format: table, json, or toon (default: json)
+- format (optional): string - Output format: json or toon (default: json)
 
 Example:
 create-issue '{"fields":{"summary":"New issue","project":{"key":"PROJ"},"issuetype":{"name":"Task"}},"profile":"cloud","format":"json"}'`,
@@ -84,7 +84,7 @@ Parameters:
 - issueIdOrKey (required): string - Issue ID or issue key to update
 - fields (required): object - Issue fields to update
 - profile (optional): string - Jira profile name (default: configured default profile)
-- format (optional): string - Output format: table, json, or toon (default: json)
+- format (optional): string - Output format: json or toon (default: json)
 
 Example:
 update-issue '{"issueIdOrKey":"PROJ-123","fields":{"summary":"Updated summary"},"profile":"cloud","format":"json"}'`,
@@ -100,7 +100,7 @@ Parameters:
 - projectIdOrKey (optional): string - Filter boards by project
 - type (optional): string - Board type (scrum, kanban, simple)
 - profile (optional): string - Jira profile name (default: configured default profile)
-- format (optional): string - Output format: table, json, or toon (default: json)
+- format (optional): string - Output format: json or toon (default: json)
 
 Example:
 list-boards '{"projectIdOrKey":"PROJ","type":"scrum","profile":"cloud","format":"json"}'`,
@@ -109,7 +109,7 @@ Parameters:
 - accountId (optional): string - User account ID
 - username (optional): string - Username (deprecated, use accountId)
 - profile (optional): string - Jira profile name (default: configured default profile)
-- format (optional): string - Output format: table, json, or toon (default: json)
+- format (optional): string - Output format: json or toon (default: json)
 
 Example:
 get-user '{"accountId":"5b10a2844c20165700ede21g","profile":"cloud","format":"json"}'`,

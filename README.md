@@ -9,7 +9,7 @@ A powerful command-line interface for Jira API interaction with support for issu
 - 💻 **Interactive REPL** for Jira exploration and management
 - 🚀 **Headless mode** for one-off command execution and automation
 - 🔐 **Multi-profile support** for managing different Jira instances
-- 📊 **Multiple output formats**: table, JSON, or TOON
+- 📊 **Multiple output formats**: JSON or TOON
 - 🎯 **Issue management**: create, read, update, delete issues
 - 📋 **Project operations**: list and view project details
 - 🔍 **JQL query support** for advanced issue searching
@@ -67,7 +67,7 @@ This file stores your Jira API connection profiles.
   - `apiToken`: Your Jira API token
 
 - **defaultProfile**: Profile name to use when none specified
-- **defaultFormat**: Default output format (`table`, `json`, or `toon`)
+- **defaultFormat**: Default output format (`json` or `toon`)
 
 ### Multiple Profiles Example
 
@@ -136,7 +136,7 @@ npx jira-api-cli create-issue '{"fields":{"summary":"New bug","project":{"key":"
 
   ```bash
   jira> list-projects
-  jira> list-projects {"format":"table"}
+  jira> list-projects {"format":"json"}
   ```
 
 - **get-project** - Get details of a specific project
@@ -208,20 +208,11 @@ Special commands available in the REPL:
 - **help** or **?** - Show help message
 - **profile \<name\>** - Switch to a different profile
 - **profiles** - List all available profiles
-- **format \<type\>** - Set output format (table, json, toon)
+- **format \<type\>** - Set output format (json, toon)
 - **clear** - Clear the screen
 - **exit**, **quit**, or **q** - Exit the CLI
 
 ## Output Formats
-
-### Table Format
-
-Human-readable table format:
-
-```bash
-jira> format table
-jira> list-projects
-```
 
 ### JSON Format
 

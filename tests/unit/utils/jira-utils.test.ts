@@ -19,6 +19,9 @@ vi.mock('jira.js', () => {
       editIssue: vi.fn(),
       deleteIssue: vi.fn(),
     };
+    issueComments = {
+      addComment: vi.fn(),
+    };
     users = {
       getUser: vi.fn(),
     };
@@ -270,6 +273,16 @@ describe('JiraUtil', () => {
       expect(result.error).toContain('ERROR: Update failed');
     });
 
+    it('addComment should handle errors gracefully', async () => {
+      const client = jiraUtil.getClient('test');
+      vi.spyOn(client.issueComments, 'addComment').mockRejectedValue(new Error('Comment add failed'));
+
+      const result = await jiraUtil.addComment('test', 'PROJ-1', 'Test comment', false, 'json');
+
+      expect(result.success).toBe(false);
+      expect(result.error).toContain('ERROR: Comment add failed');
+    });
+
     it('deleteIssue should handle errors gracefully', async () => {
       const client = jiraUtil.getClient('test');
       vi.spyOn(client.issues, 'deleteIssue').mockRejectedValue(new Error('Delete failed'));
@@ -369,6 +382,104 @@ describe('JiraUtil', () => {
 
       expect(result.success).toBe(true);
       expect(result.result).toContain('updated successfully');
+    });
+
+    it('addComment should add plain text comment successfully', async () => {
+      const client = jiraUtil.getClient('test');
+      const mockComment = {
+        id: '10001',
+        body: {
+          type: 'doc',
+          version: 1,
+          content: [
+            {
+              type: 'paragraph',
+              content: [{ type: 'text', text: 'This is a plain text comment' }],
+            },
+          ],
+        },
+        author: {
+          accountId: 'current',
+          displayName: 'Current User',
+        },
+        created: '2024-01-15T12:00:00Z',
+      };
+      vi.spyOn(client.issueComments, 'addComment').mockResolvedValue(mockComment);
+
+      const result = await jiraUtil.addComment('test', 'PROJ-1', 'This is a plain text comment', false, 'json');
+
+      expect(result.success).toBe(true);
+      expect(result.data).toEqual(mockComment);
+      expect(result.result).toContain('10001');
+    });
+
+    it('addComment should add markdown comment successfully', async () => {
+      const client = jiraUtil.getClient('test');
+      const mockComment = {
+        id: '10002',
+        body: {
+          type: 'doc',
+          version: 1,
+          content: [],
+        },
+        author: {
+          accountId: 'current',
+          displayName: 'Current User',
+        },
+        created: '2024-01-15T12:00:00Z',
+      };
+      vi.spyOn(client.issueComments, 'addComment').mockResolvedValue(mockComment);
+
+      const markdown = 'This is **bold** and *italic*\n\n- Item 1\n- Item 2';
+      const result = await jiraUtil.addComment('test', 'PROJ-1', markdown, true, 'json');
+
+      expect(result.success).toBe(true);
+      expect(result.data).toEqual(mockComment);
+      expect(client.issueComments.addComment).toHaveBeenCalledWith(
+        expect.objectContaining({
+          issueIdOrKey: 'PROJ-1',
+          comment: expect.objectContaining({
+            type: 'doc',
+            version: 1,
+          }),
+        })
+      );
+    });
+
+    it('addComment should format result as toon', async () => {
+      const client = jiraUtil.getClient('test');
+      const mockComment = {
+        id: '10003',
+        body: {
+          type: 'doc',
+          version: 1,
+          content: [],
+        },
+      };
+      vi.spyOn(client.issueComments, 'addComment').mockResolvedValue(mockComment);
+
+      const result = await jiraUtil.addComment('test', 'PROJ-1', 'Test comment', false, 'toon');
+
+      expect(result.success).toBe(true);
+      expect(typeof result.result).toBe('string');
+    });
+
+    it('addComment should handle empty comment', async () => {
+      const client = jiraUtil.getClient('test');
+      const mockComment = {
+        id: '10004',
+        body: {
+          type: 'doc',
+          version: 1,
+          content: [{ type: 'paragraph', content: [] }],
+        },
+      };
+      vi.spyOn(client.issueComments, 'addComment').mockResolvedValue(mockComment);
+
+      const result = await jiraUtil.addComment('test', 'PROJ-1', '', false, 'json');
+
+      expect(result.success).toBe(true);
+      expect(result.data).toEqual(mockComment);
     });
 
     it('deleteIssue should return success message', async () => {

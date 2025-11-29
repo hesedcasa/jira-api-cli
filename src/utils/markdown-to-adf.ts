@@ -86,10 +86,10 @@ export function markdownToAdf(markdown: string): AdfDocument {
     }
 
     // Bullet lists
-    if (line.match(/^[\*\-\+]\s+/)) {
+    if (line.match(/^[*\-+]\s+/)) {
       const listItems: AdfNode[] = [];
-      while (i < lines.length && lines[i].match(/^[\*\-\+]\s+/)) {
-        const itemText = lines[i].replace(/^[\*\-\+]\s+/, '');
+      while (i < lines.length && lines[i].match(/^[*\-+]\s+/)) {
+        const itemText = lines[i].replace(/^[*\-+]\s+/, '');
         listItems.push({
           type: 'listItem',
           content: [
@@ -216,7 +216,7 @@ function parseInlineMarkdown(text: string): AdfNode[] {
     }
 
     // Regular text - find next special character or end
-    const nextSpecial = remaining.search(/[\*`\[]/);
+    const nextSpecial = remaining.search(/[*`[]/);
     if (nextSpecial === -1) {
       nodes.push({
         type: 'text',

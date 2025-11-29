@@ -82,7 +82,7 @@ export const runCommand = async (
           console.error('ERROR: "issueIdOrKey" and "body" parameters are required');
           process.exit(1);
         }
-        result = await addComment(profile, args.issueIdOrKey, args.body, format);
+        result = await addComment(profile, args.issueIdOrKey, args.body, args.markdown || false, format);
         break;
 
       case 'delete-issue':

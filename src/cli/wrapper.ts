@@ -214,7 +214,7 @@ export class wrapper {
             this.rl.prompt();
             return;
           }
-          result = await addComment(profile, args.issueIdOrKey, args.body, format);
+          result = await addComment(profile, args.issueIdOrKey, args.body, args.markdown || false, format);
           break;
 
         case 'delete-issue':

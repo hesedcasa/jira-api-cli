@@ -94,11 +94,16 @@ update-issue '{"issueIdOrKey":"PROJ-123","fields":{"summary":"Updated summary"},
 Parameters:
 - issueIdOrKey (required): string - Issue ID or issue key to add comment to
 - body (required): string - Comment text content
+- markdown (optional): boolean - Parse body as markdown (default: false)
 - profile (optional): string - Jira profile name (default: configured default profile)
 - format (optional): string - Output format: json or toon (default: json)
 
-Example:
-add-comment '{"issueIdOrKey":"PROJ-123","body":"This is a comment","profile":"cloud","format":"json"}'`,
+Examples:
+Plain text:
+add-comment '{"issueIdOrKey":"PROJ-123","body":"This is a plain text comment"}'
+
+Markdown:
+add-comment '{"issueIdOrKey":"PROJ-123","body":"This is **bold** and *italic*\\n\\n- Item 1\\n- Item 2","markdown":true}'`,
   `
 Parameters:
 - issueIdOrKey (required): string - Issue ID or issue key to delete

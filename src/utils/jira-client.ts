@@ -119,16 +119,18 @@ export async function updateIssue(
  * @param profile - Jira profile name
  * @param issueIdOrKey - Issue ID or key
  * @param body - Comment text content
+ * @param markdown - Whether to parse body as markdown (default: false)
  * @param format - Output format (json, toon)
  */
 export async function addComment(
   profile: string,
   issueIdOrKey: string,
   body: string,
+  markdown = false,
   format: 'json' | 'toon' = 'json'
 ): Promise<ApiResult> {
   const jira = await initJira();
-  return await jira.addComment(profile, issueIdOrKey, body, format);
+  return await jira.addComment(profile, issueIdOrKey, body, markdown, format);
 }
 
 /**

@@ -3,6 +3,7 @@ import { Version3Client } from 'jira.js';
 
 import type { Config } from './config-loader.js';
 import { getJiraClientOptions } from './config-loader.js';
+import { markdownToAdf, textToAdf } from './markdown-to-adf.js';
 
 /**
  * Generic API result
@@ -248,13 +249,18 @@ export class JiraUtil {
     profileName: string,
     issueIdOrKey: string,
     body: string,
+    markdown = false,
     format: 'json' | 'toon' = 'json'
   ): Promise<ApiResult> {
     try {
       const client = this.getClient(profileName);
+
+      // Convert body to ADF format
+      const bodyContent = markdown ? markdownToAdf(body) : textToAdf(body);
+
       const response = await client.issueComments.addComment({
         issueIdOrKey,
-        comment: body,
+        comment: bodyContent as Parameters<typeof client.issueComments.addComment>[0]['comment'],
       });
 
       return {

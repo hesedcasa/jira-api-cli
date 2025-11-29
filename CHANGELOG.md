@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.1.0](https://github.com/hesedcasa/jira-api-cli/compare/jira-api-cli-v1.0.2...jira-api-cli-v1.1.0) (2025-11-29)
+
+
+### 🎉 Features
+
+* add markdown support for add-comment command ([#7](https://github.com/hesedcasa/jira-api-cli/issues/7)) ([254732d](https://github.com/hesedcasa/jira-api-cli/commit/254732d6a9b24a32656a90b57f05c18bf10677b5))
+
 ## [1.0.2](https://github.com/hesedcasa/jira-api-cli/compare/jira-api-cli-v1.0.1...jira-api-cli-v1.0.2) (2025-11-29)
 
 

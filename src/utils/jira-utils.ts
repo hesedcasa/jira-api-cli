@@ -3,6 +3,7 @@ import { Version3Client } from 'jira.js';
 
 import type { Config } from './config-loader.js';
 import { getJiraClientOptions } from './config-loader.js';
+import { markdownToAdf, textToAdf } from './markdown-to-adf.js';
 
 /**
  * Generic API result
@@ -231,6 +232,41 @@ export class JiraUtil {
       return {
         success: true,
         result: `✅ Issue ${issueIdOrKey} updated successfully!`,
+      };
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      return {
+        success: false,
+        error: `ERROR: ${errorMessage}`,
+      };
+    }
+  }
+
+  /**
+   * Add a comment to an issue
+   */
+  async addComment(
+    profileName: string,
+    issueIdOrKey: string,
+    body: string,
+    markdown = false,
+    format: 'json' | 'toon' = 'json'
+  ): Promise<ApiResult> {
+    try {
+      const client = this.getClient(profileName);
+
+      // Convert body to ADF format
+      const bodyContent = markdown ? markdownToAdf(body) : textToAdf(body);
+
+      const response = await client.issueComments.addComment({
+        issueIdOrKey,
+        comment: bodyContent as Parameters<typeof client.issueComments.addComment>[0]['comment'],
+      });
+
+      return {
+        success: true,
+        data: response,
+        result: this.formatResult(response, format),
       };
     } catch (error: unknown) {
       const errorMessage = error instanceof Error ? error.message : String(error);

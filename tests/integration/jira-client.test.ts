@@ -1,6 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import {
+  addComment,
   clearClients,
   createIssue,
   deleteIssue,
@@ -100,6 +101,21 @@ vi.mock('jira.js', () => {
       }),
       editIssue: vi.fn().mockResolvedValue(undefined),
       deleteIssue: vi.fn().mockResolvedValue(undefined),
+    };
+    issueComments = {
+      addComment: vi.fn().mockResolvedValue({
+        id: '10001',
+        body: {
+          type: 'doc',
+          version: 1,
+          content: [],
+        },
+        author: {
+          accountId: 'current',
+          displayName: 'Current User',
+        },
+        created: '2024-01-15T12:00:00Z',
+      }),
     };
     users = {
       getUser: vi.fn().mockResolvedValue({
@@ -266,6 +282,65 @@ describe('jira-client (integration)', () => {
     });
   });
 
+  describe('addComment', () => {
+    it('should add plain text comment successfully', async () => {
+      const result = await addComment('test', 'TEST-1', 'This is a plain text comment', false, 'json');
+
+      expect(result.success).toBe(true);
+      expect(result.data).toHaveProperty('id', '10001');
+      expect(result.data).toHaveProperty('body');
+    });
+
+    it('should add markdown comment successfully', async () => {
+      const markdown = 'This is **bold** and *italic*\n\n- Item 1\n- Item 2';
+      const result = await addComment('test', 'TEST-1', markdown, true, 'json');
+
+      expect(result.success).toBe(true);
+      expect(result.data).toHaveProperty('id', '10001');
+    });
+
+    it('should handle multiline plain text comment', async () => {
+      const text = 'Line 1\nLine 2\nLine 3';
+      const result = await addComment('test', 'TEST-1', text, false, 'json');
+
+      expect(result.success).toBe(true);
+      expect(result.data).toHaveProperty('id');
+    });
+
+    it('should handle complex markdown with code blocks', async () => {
+      const markdown = '# Bug Report\n\n```javascript\nconst x = 1;\n```\n\nSteps:\n1. First step\n2. Second step';
+      const result = await addComment('test', 'TEST-1', markdown, true, 'json');
+
+      expect(result.success).toBe(true);
+    });
+
+    it('should handle empty comment', async () => {
+      const result = await addComment('test', 'TEST-1', '', false, 'json');
+
+      expect(result.success).toBe(true);
+    });
+
+    it('should format comment result as toon', async () => {
+      const result = await addComment('test', 'TEST-1', 'Test comment', false, 'toon');
+
+      expect(result.success).toBe(true);
+      expect(typeof result.result).toBe('string');
+    });
+
+    it('should default markdown parameter to false', async () => {
+      const result = await addComment('test', 'TEST-1', 'Test comment');
+
+      expect(result.success).toBe(true);
+    });
+
+    it('should default format to json', async () => {
+      const result = await addComment('test', 'TEST-1', 'Test comment', false);
+
+      expect(result.success).toBe(true);
+      expect(result.data).toBeDefined();
+    });
+  });
+
   describe('deleteIssue', () => {
     it('should delete issue successfully', async () => {
       const result = await deleteIssue('test', 'TEST-1');
@@ -356,6 +431,7 @@ describe('jira-client (integration)', () => {
       expect(typeof getIssue).toBe('function');
       expect(typeof createIssue).toBe('function');
       expect(typeof updateIssue).toBe('function');
+      expect(typeof addComment).toBe('function');
       expect(typeof deleteIssue).toBe('function');
       expect(typeof getUser).toBe('function');
       expect(typeof testConnection).toBe('function');

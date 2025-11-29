@@ -12,6 +12,7 @@ export const COMMANDS: string[] = [
   'get-issue',
   'create-issue',
   'update-issue',
+  'add-comment',
   'delete-issue',
   'list-boards',
   'get-user',
@@ -28,6 +29,7 @@ export const COMMANDS_INFO: string[] = [
   'Get details of a specific issue',
   'Create a new issue',
   'Update an existing issue',
+  'Add a comment to an issue',
   'Delete an issue',
   'List agile boards',
   'Get user information',
@@ -88,6 +90,20 @@ Parameters:
 
 Example:
 update-issue '{"issueIdOrKey":"PROJ-123","fields":{"summary":"Updated summary"},"profile":"cloud","format":"json"}'`,
+  `
+Parameters:
+- issueIdOrKey (required): string - Issue ID or issue key to add comment to
+- body (required): string - Comment text content
+- markdown (optional): boolean - Parse body as markdown (default: false)
+- profile (optional): string - Jira profile name (default: configured default profile)
+- format (optional): string - Output format: json or toon (default: json)
+
+Examples:
+Plain text:
+add-comment '{"issueIdOrKey":"PROJ-123","body":"This is a plain text comment"}'
+
+Markdown:
+add-comment '{"issueIdOrKey":"PROJ-123","body":"This is **bold** and *italic*\\n\\n- Item 1\\n- Item 2","markdown":true}'`,
   `
 Parameters:
 - issueIdOrKey (required): string - Issue ID or issue key to delete

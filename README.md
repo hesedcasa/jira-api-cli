@@ -11,6 +11,7 @@ A powerful command-line interface for Jira API interaction with support for issu
 - 🔐 **Multi-profile support** for managing different Jira instances
 - 📊 **Multiple output formats**: JSON or TOON
 - 🎯 **Issue management**: create, read, update, delete issues
+- 💬 **Comment support**: add comments to issues with markdown support
 - 📋 **Project operations**: list and view project details
 - 🔍 **JQL query support** for advanced issue searching
 - 👤 **User management**: retrieve user information
@@ -124,6 +125,9 @@ npx jira-api-cli get-issue '{"issueIdOrKey":"PROJ-123"}'
 # List issues with JQL
 npx jira-api-cli list-issues '{"jql":"project = PROJ AND status = Open","maxResults":10}'
 
+# Add comment to an issue
+npx jira-api-cli add-comment '{"issueIdOrKey":"PROJ-123","body":"Status update from CLI","markdown":true}'
+
 # Create a new issue
 npx jira-api-cli create-issue '{"fields":{"summary":"New bug","project":{"key":"PROJ"},"issuetype":{"name":"Bug"}}}'
 ```
@@ -170,6 +174,16 @@ npx jira-api-cli create-issue '{"fields":{"summary":"New bug","project":{"key":"
 
   ```bash
   jira> update-issue {"issueIdOrKey":"PROJ-123","fields":{"summary":"Updated summary"}}
+  ```
+
+- **add-comment** - Add a comment to an issue
+
+  ```bash
+  # Plain text comment
+  jira> add-comment {"issueIdOrKey":"PROJ-123","body":"This is a comment"}
+
+  # Markdown comment
+  jira> add-comment {"issueIdOrKey":"PROJ-123","body":"This is **bold** and *italic*\n\n- Item 1\n- Item 2","markdown":true}
   ```
 
 - **delete-issue** - Delete an issue
@@ -297,6 +311,9 @@ jira> get-issue {"issueIdOrKey":"PROJ-123"}
 # Update issue
 jira> update-issue {"issueIdOrKey":"PROJ-123","fields":{"assignee":{"accountId":"123456"}}}
 
+# Add comment to issue
+jira> add-comment {"issueIdOrKey":"PROJ-123","body":"Working on this now","markdown":true}
+
 # Create new issue
 jira> create-issue {"fields":{"summary":"Fix login bug","project":{"key":"PROJ"},"issuetype":{"name":"Bug"},"priority":{"name":"High"}}}
 ```
@@ -319,6 +336,13 @@ npx jira-api-cli create-issue '{
     "issuetype": {"name": "Task"},
     "description": "Created via automation script"
   }
+}'
+
+# Add status comment to issue
+npx jira-api-cli add-comment '{
+  "issueIdOrKey": "PROJ-123",
+  "body": "**Automation Update**\n\nBuild completed successfully at $(date)",
+  "markdown": true
 }'
 ```
 

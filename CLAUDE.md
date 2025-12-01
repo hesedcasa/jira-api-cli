@@ -83,7 +83,7 @@ tests/
 #### Commands Module (`src/commands/`)
 
 - `helpers.ts` - Display command information and help
-  - `printAvailableCommands()` - Lists all 10 available commands
+  - `printAvailableCommands()` - Lists all 11 available commands
   - `printCommandDetail(command)` - Shows detailed help for specific command
   - `getCurrentVersion()` - Reads version from package.json
 - `runner.ts` - Execute commands in headless mode
@@ -92,7 +92,7 @@ tests/
 #### Config Module (`src/config/`)
 
 - `constants.ts` - Centralized configuration
-  - `COMMANDS[]` - Array of 10 available Jira command names
+  - `COMMANDS[]` - Array of 11 available Jira command names
   - `COMMANDS_INFO[]` - Brief descriptions for each command
   - `COMMANDS_DETAIL[]` - Detailed parameter documentation
 
@@ -105,11 +105,11 @@ tests/
   - `getJiraClientOptions(config, profileName)` - Builds jira.js client options
   - TypeScript interfaces: `Config`, `JiraProfile`, `JiraClientOptions`
 - `jira-client.ts` - Jira API wrapper functions
-  - Exports: `listProjects()`, `getProject()`, `listIssues()`, `getIssue()`, `createIssue()`, `updateIssue()`, `deleteIssue()`, `getUser()`, `testConnection()`, `clearClients()`
+  - Exports: `listProjects()`, `getProject()`, `listIssues()`, `getIssue()`, `createIssue()`, `updateIssue()`, `addComment()`, `deleteIssue()`, `getUser()`, `testConnection()`, `clearClients()`
   - Manages singleton `JiraUtil` instance
 - `jira-utils.ts` - Core Jira utility class
   - `JiraUtil` class - Client pooling and API calls
-  - Implements all 10 Jira commands
+  - Implements all 11 Jira commands
   - Formats results as JSON or TOON
 
 ### Configuration System
@@ -140,17 +140,18 @@ defaultFormat: json
 
 - Custom prompt: `jira>`
 - **Special commands**: `help`, `commands`, `profiles`, `profile <name>`, `format <type>`, `clear`, `exit/quit/q`
-- **Jira commands**: 10 commands accepting JSON arguments
+- **Jira commands**: 11 commands accepting JSON arguments
   1. `list-projects` - List all accessible projects
   2. `get-project` - Get details of a specific project
   3. `list-issues` - List issues using JQL query
   4. `get-issue` - Get details of a specific issue
   5. `create-issue` - Create a new issue
   6. `update-issue` - Update an existing issue
-  7. `delete-issue` - Delete an issue
-  8. `list-boards` - List agile boards
-  9. `get-user` - Get user information
-  10. `test-connection` - Test Jira API connection
+  7. `add-comment` - Add a comment to an issue
+  8. `delete-issue` - Delete an issue
+  9. `list-boards` - List agile boards
+  10. `get-user` - Get user information
+  11. `test-connection` - Test Jira API connection
 
 ### TypeScript Configuration
 
@@ -161,7 +162,7 @@ defaultFormat: json
 
 ## Available Commands
 
-The CLI provides **10 Jira API commands**:
+The CLI provides **11 Jira API commands**:
 
 1. **list-projects** - List all accessible projects
 2. **get-project** - Get details of a specific project
@@ -169,10 +170,11 @@ The CLI provides **10 Jira API commands**:
 4. **get-issue** - Get details of a specific issue
 5. **create-issue** - Create a new issue
 6. **update-issue** - Update an existing issue
-7. **delete-issue** - Delete an issue
-8. **list-boards** - List agile boards (experimental)
-9. **get-user** - Get user information
-10. **test-connection** - Test Jira API connection
+7. **add-comment** - Add a comment to an issue
+8. **delete-issue** - Delete an issue
+9. **list-boards** - List agile boards (experimental)
+10. **get-user** - Get user information
+11. **test-connection** - Test Jira API connection
 
 ### Command Examples
 
@@ -181,7 +183,7 @@ The CLI provides **10 Jira API commands**:
 npm start
 
 # Inside the REPL:
-jira> commands                          # List all 10 commands
+jira> commands                          # List all 11 commands
 jira> help                              # Show help
 jira> profiles                          # List available profiles
 jira> profile production                # Switch profile
@@ -189,6 +191,7 @@ jira> format json                       # Change output format
 jira> list-projects
 jira> get-issue '{"issueIdOrKey":"PROJ-123"}'
 jira> list-issues '{"jql":"project = PROJ AND status = Open","maxResults":10}'
+jira> add-comment '{"issueIdOrKey":"PROJ-123","body":"Great work!","markdown":true}'
 jira> exit                              # Exit
 
 # Headless mode (one-off commands):

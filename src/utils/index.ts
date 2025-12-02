@@ -2,15 +2,18 @@ export { parseArguments } from './argParser.js';
 export { loadConfig } from './config-loader.js';
 export type { Config } from './config-loader.js';
 export {
-  listProjects,
-  getProject,
-  listIssues,
+  listProjectEvents,
+  listProjectIssues,
+  listOrgIssues,
   getIssue,
-  createIssue,
   updateIssue,
-  addComment,
-  deleteIssue,
-  getUser,
+  listIssueEvents,
+  getEvent,
+  getIssueEvent,
+  getTagDetails,
+  listTagValues,
+  listIssueHashes,
+  debugSourceMaps,
   testConnection,
   clearClients,
-} from './jira-client.js';
+} from './sentry-client.js';

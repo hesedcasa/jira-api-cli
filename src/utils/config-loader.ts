@@ -3,49 +3,45 @@ import path from 'path';
 import yaml from 'yaml';
 
 /**
- * Jira connection profile configuration
+ * Sentry connection profile configuration
  */
-interface JiraProfile {
-  host: string;
-  email: string;
-  apiToken: string;
+interface SentryProfile {
+  authToken: string;
+  organization: string;
+  baseUrl?: string;
 }
 
 /**
  * Main configuration structure
  */
 export interface Config {
-  profiles: Record<string, JiraProfile>;
+  profiles: Record<string, SentryProfile>;
   defaultProfile: string;
   defaultFormat: 'json' | 'toon';
 }
 
 /**
- * Jira client options for jira.js library
+ * Sentry client options for API calls
  */
-interface JiraClientOptions {
-  host: string;
-  authentication: {
-    basic: {
-      email: string;
-      apiToken: string;
-    };
-  };
+export interface SentryClientOptions {
+  authToken: string;
+  organization: string;
+  baseUrl: string;
 }
 
 /**
- * Load Jira connection profiles from .claude/jira-connector.local.md
+ * Load Sentry connection profiles from .claude/sentry-connector.local.md
  *
  * @param projectRoot - Project root directory
  * @returns Configuration object with profiles and settings
  */
 export function loadConfig(projectRoot: string): Config {
-  const configPath = path.join(projectRoot, '.claude', 'jira-connector.local.md');
+  const configPath = path.join(projectRoot, '.claude', 'sentry-connector.local.md');
 
   if (!fs.existsSync(configPath)) {
     throw new Error(
       `Configuration file not found at ${configPath}\n` +
-        `Please create .claude/jira-connector.local.md with your Jira profiles.`
+        `Please create .claude/sentry-connector.local.md with your Sentry profiles.`
     );
   }
 
@@ -68,21 +64,16 @@ export function loadConfig(projectRoot: string): Config {
 
   // Validate each profile
   for (const [profileName, profile] of Object.entries(config.profiles)) {
-    const required: Array<keyof JiraProfile> = ['host', 'email', 'apiToken'];
+    const required: Array<keyof SentryProfile> = ['authToken', 'organization'];
     for (const field of required) {
       if (!profile[field]) {
         throw new Error(`Profile "${profileName}" missing required field: ${field}`);
       }
     }
 
-    // Validate host format
-    if (!profile.host.startsWith('http://') && !profile.host.startsWith('https://')) {
-      throw new Error(`Profile "${profileName}" host must start with http:// or https://`);
-    }
-
-    // Validate email format (basic check)
-    if (!profile.email.includes('@')) {
-      throw new Error(`Profile "${profileName}" email appears to be invalid`);
+    // Validate baseUrl format if provided
+    if (profile.baseUrl && !profile.baseUrl.startsWith('http://') && !profile.baseUrl.startsWith('https://')) {
+      throw new Error(`Profile "${profileName}" baseUrl must start with http:// or https://`);
     }
   }
 
@@ -94,13 +85,13 @@ export function loadConfig(projectRoot: string): Config {
 }
 
 /**
- * Get Jira client options for a specific profile
+ * Get Sentry client options for a specific profile
  *
  * @param config - Configuration object
  * @param profileName - Profile name
- * @returns Jira client options for jira.js
+ * @returns Sentry client options for API calls
  */
-export function getJiraClientOptions(config: Config, profileName: string): JiraClientOptions {
+export function getSentryClientOptions(config: Config, profileName: string): SentryClientOptions {
   const profile = config.profiles[profileName];
 
   if (!profile) {
@@ -109,12 +100,8 @@ export function getJiraClientOptions(config: Config, profileName: string): JiraC
   }
 
   return {
-    host: profile.host,
-    authentication: {
-      basic: {
-        email: profile.email,
-        apiToken: profile.apiToken,
-      },
-    },
+    authToken: profile.authToken,
+    organization: profile.organization,
+    baseUrl: profile.baseUrl || 'https://sentry.io/api/0',
   };
 }

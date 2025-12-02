@@ -1,21 +1,23 @@
 /**
- * Jira API CLI Commands Configuration
+ * Sentry API CLI Commands Configuration
  */
 
 /**
- * Available Jira API commands
+ * Available Sentry API commands
  */
 export const COMMANDS: string[] = [
-  'list-projects',
-  'get-project',
-  'list-issues',
+  'list-project-events',
+  'list-project-issues',
+  'list-org-issues',
   'get-issue',
-  'create-issue',
   'update-issue',
-  'add-comment',
-  'delete-issue',
-  'list-boards',
-  'get-user',
+  'list-issue-events',
+  'get-event',
+  'get-issue-event',
+  'get-tag-details',
+  'list-tag-values',
+  'list-issue-hashes',
+  'debug-source-maps',
   'test-connection',
 ];
 
@@ -23,17 +25,19 @@ export const COMMANDS: string[] = [
  * Brief descriptions for each command
  */
 export const COMMANDS_INFO: string[] = [
-  'List all accessible projects',
-  'Get details of a specific project',
-  'List issues using JQL query',
-  'Get details of a specific issue',
-  'Create a new issue',
-  'Update an existing issue',
-  'Add a comment to an issue',
-  'Delete an issue',
-  'List agile boards',
-  'Get user information',
-  'Test Jira API connection',
+  'List a project\'s error events',
+  'List a project\'s issues',
+  'List an organization\'s issues',
+  'Retrieve an issue',
+  'Update an issue',
+  'List an issue\'s events',
+  'Retrieve an event for a project',
+  'Retrieve an issue event',
+  'Retrieve tag details for an issue',
+  'List a tag\'s values for an issue',
+  'List an issue\'s hashes',
+  'Debug issues related to source maps',
+  'Test Sentry API connection',
 ];
 
 /**
@@ -42,97 +46,142 @@ export const COMMANDS_INFO: string[] = [
 export const COMMANDS_DETAIL: string[] = [
   `
 Parameters:
-- profile (optional): string - Jira profile name (default: configured default profile)
+- projectSlug (required): string - Project slug or ID
+- statsPeriod (optional): string - Time period (e.g., "24h", "7d")
+- start (optional): string - ISO-8601 timestamp
+- end (optional): string - ISO-8601 timestamp
+- cursor (optional): string - Pagination cursor
+- full (optional): boolean - Include full event body
+- profile (optional): string - Sentry profile name (default: configured default profile)
 - format (optional): string - Output format: json or toon (default: json)
 
 Example:
-list-projects '{"profile":"cloud","format":"json"}'`,
+list-project-events '{"projectSlug":"my-project","statsPeriod":"24h","profile":"production","format":"json"}'`,
   `
 Parameters:
-- projectIdOrKey (required): string - Project ID or project key
-- profile (optional): string - Jira profile name (default: configured default profile)
+- projectSlug (required): string - Project slug or ID
+- statsPeriod (optional): string - Time period (default: "24h")
+- shortIdLookup (optional): boolean - Enable short ID lookups
+- query (optional): string - Search query (default: "is:unresolved")
+- cursor (optional): string - Pagination cursor
+- profile (optional): string - Sentry profile name (default: configured default profile)
 - format (optional): string - Output format: json or toon (default: json)
 
 Example:
-get-project '{"projectIdOrKey":"PROJ","profile":"cloud","format":"json"}'`,
+list-project-issues '{"projectSlug":"my-project","query":"is:unresolved","profile":"production","format":"json"}'`,
   `
 Parameters:
-- jql (optional): string - JQL query to filter issues (default: all issues)
-- maxResults (optional): number - Maximum number of results (default: 50)
-- startAt (optional): number - Starting index for pagination (default: 0)
-- profile (optional): string - Jira profile name (default: configured default profile)
+- statsPeriod (optional): string - Time period (e.g., "24h", "14d")
+- start (optional): string - ISO-8601 timestamp
+- end (optional): string - ISO-8601 timestamp
+- project (optional): number[] - Filter by project IDs
+- environment (optional): string[] - Filter by environments
+- query (optional): string - Search query (default: "is:unresolved")
+- sort (optional): string - Sort order (date, new, trends, freq, user, inbox)
+- limit (optional): number - Maximum results (max 100)
+- cursor (optional): string - Pagination cursor
+- profile (optional): string - Sentry profile name (default: configured default profile)
 - format (optional): string - Output format: json or toon (default: json)
 
 Example:
-list-issues '{"jql":"project = PROJ AND status = Open","maxResults":10,"profile":"cloud","format":"json"}'`,
+list-org-issues '{"query":"is:unresolved","limit":50,"sort":"date","profile":"production","format":"json"}'`,
   `
 Parameters:
-- issueIdOrKey (required): string - Issue ID or issue key
-- profile (optional): string - Jira profile name (default: configured default profile)
+- issueId (required): string - Issue ID
+- profile (optional): string - Sentry profile name (default: configured default profile)
 - format (optional): string - Output format: json or toon (default: json)
 
 Example:
-get-issue '{"issueIdOrKey":"PROJ-123","profile":"cloud","format":"json"}'`,
+get-issue '{"issueId":"123456789","profile":"production","format":"json"}'`,
   `
 Parameters:
-- fields (required): object - Issue fields including summary, project, issuetype, etc.
-- profile (optional): string - Jira profile name (default: configured default profile)
+- issueId (required): string - Issue ID
+- status (optional): string - Issue status (resolved, resolvedInNextRelease, unresolved, ignored)
+- statusDetails (optional): object - Additional status details
+- assignedTo (optional): string - Actor ID or username
+- hasSeen (optional): boolean - Mark as seen
+- isBookmarked (optional): boolean - Bookmark status
+- isSubscribed (optional): boolean - Subscription status
+- isPublic (optional): boolean - Public visibility
+- profile (optional): string - Sentry profile name (default: configured default profile)
+
+Example:
+update-issue '{"issueId":"123456789","status":"resolved","profile":"production"}'`,
+  `
+Parameters:
+- issueId (required): string - Issue ID
+- start (optional): string - ISO-8601 timestamp
+- end (optional): string - ISO-8601 timestamp
+- statsPeriod (optional): string - Time period
+- environment (optional): string[] - Filter by environments
+- full (optional): boolean - Include full event body
+- cursor (optional): string - Pagination cursor
+- profile (optional): string - Sentry profile name (default: configured default profile)
 - format (optional): string - Output format: json or toon (default: json)
 
 Example:
-create-issue '{"fields":{"summary":"New issue","project":{"key":"PROJ"},"issuetype":{"name":"Task"}},"profile":"cloud","format":"json"}'`,
+list-issue-events '{"issueId":"123456789","statsPeriod":"24h","profile":"production","format":"json"}'`,
   `
 Parameters:
-- issueIdOrKey (required): string - Issue ID or issue key to update
-- fields (required): object - Issue fields to update
-- profile (optional): string - Jira profile name (default: configured default profile)
+- projectSlug (required): string - Project slug or ID
+- eventId (required): string - Event ID (hexadecimal)
+- profile (optional): string - Sentry profile name (default: configured default profile)
 - format (optional): string - Output format: json or toon (default: json)
 
 Example:
-update-issue '{"issueIdOrKey":"PROJ-123","fields":{"summary":"Updated summary"},"profile":"cloud","format":"json"}'`,
+get-event '{"projectSlug":"my-project","eventId":"abc123def456","profile":"production","format":"json"}'`,
   `
 Parameters:
-- issueIdOrKey (required): string - Issue ID or issue key to add comment to
-- body (required): string - Comment text content
-- markdown (optional): boolean - Parse body as markdown (default: false)
-- profile (optional): string - Jira profile name (default: configured default profile)
-- format (optional): string - Output format: json or toon (default: json)
-
-Examples:
-Plain text:
-add-comment '{"issueIdOrKey":"PROJ-123","body":"This is a plain text comment"}'
-
-Markdown:
-add-comment '{"issueIdOrKey":"PROJ-123","body":"This is **bold** and *italic*\\n\\n- Item 1\\n- Item 2","markdown":true}'`,
-  `
-Parameters:
-- issueIdOrKey (required): string - Issue ID or issue key to delete
-- profile (optional): string - Jira profile name (default: configured default profile)
-
-Example:
-delete-issue '{"issueIdOrKey":"PROJ-123","profile":"cloud"}'`,
-  `
-Parameters:
-- projectIdOrKey (optional): string - Filter boards by project
-- type (optional): string - Board type (scrum, kanban, simple)
-- profile (optional): string - Jira profile name (default: configured default profile)
+- issueId (required): string - Issue ID
+- eventId (required): string - Event ID
+- profile (optional): string - Sentry profile name (default: configured default profile)
 - format (optional): string - Output format: json or toon (default: json)
 
 Example:
-list-boards '{"projectIdOrKey":"PROJ","type":"scrum","profile":"cloud","format":"json"}'`,
+get-issue-event '{"issueId":"123456789","eventId":"abc123def456","profile":"production","format":"json"}'`,
   `
 Parameters:
-- accountId (optional): string - User account ID
-- username (optional): string - Username (deprecated, use accountId)
-- profile (optional): string - Jira profile name (default: configured default profile)
+- issueId (required): string - Issue ID
+- tagKey (required): string - Tag key to look up
+- environment (optional): string[] - Filter by environments
+- profile (optional): string - Sentry profile name (default: configured default profile)
 - format (optional): string - Output format: json or toon (default: json)
 
 Example:
-get-user '{"accountId":"5b10a2844c20165700ede21g","profile":"cloud","format":"json"}'`,
+get-tag-details '{"issueId":"123456789","tagKey":"browser","profile":"production","format":"json"}'`,
   `
 Parameters:
-- profile (optional): string - Jira profile name (default: configured default profile)
+- issueId (required): string - Issue ID
+- tagKey (required): string - Tag key to look up
+- environment (optional): string[] - Filter by environments
+- profile (optional): string - Sentry profile name (default: configured default profile)
+- format (optional): string - Output format: json or toon (default: json)
 
 Example:
-test-connection '{"profile":"cloud"}'`,
+list-tag-values '{"issueId":"123456789","tagKey":"environment","profile":"production","format":"json"}'`,
+  `
+Parameters:
+- issueId (required): string - Issue ID
+- profile (optional): string - Sentry profile name (default: configured default profile)
+- format (optional): string - Output format: json or toon (default: json)
+
+Example:
+list-issue-hashes '{"issueId":"123456789","profile":"production","format":"json"}'`,
+  `
+Parameters:
+- projectSlug (required): string - Project slug or ID
+- eventId (required): string - Event ID
+- frame_idx (optional): string - Frame index
+- exception_idx (optional): string - Exception index
+- profile (optional): string - Sentry profile name (default: configured default profile)
+- format (optional): string - Output format: json or toon (default: json)
+
+Example:
+debug-source-maps '{"projectSlug":"my-project","eventId":"abc123def456","profile":"production","format":"json"}'`,
+  `
+Parameters:
+- profile (optional): string - Sentry profile name (default: configured default profile)
+
+Example:
+test-connection '{"profile":"production"}'`,
 ];

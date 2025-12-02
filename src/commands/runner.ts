@@ -1,20 +1,23 @@
 import {
-  addComment,
   clearClients,
-  createIssue,
-  deleteIssue,
+  debugSourceMaps,
+  getEvent,
   getIssue,
-  getProject,
-  getUser,
-  listIssues,
-  listProjects,
+  getIssueEvent,
+  getTagDetails,
+  listIssueEvents,
+  listIssueHashes,
+  listOrgIssues,
+  listProjectEvents,
+  listProjectIssues,
+  listTagValues,
   loadConfig,
   testConnection,
   updateIssue,
 } from '../utils/index.js';
 
 /**
- * Execute a Jira API command in headless mode
+ * Execute a Sentry API command in headless mode
  * @param command - The command name to execute
  * @param arg - JSON string or null for the command arguments
  */
@@ -37,64 +40,96 @@ export const runCommand = async (
     let result;
 
     switch (command) {
-      case 'list-projects':
-        result = await listProjects(profile, format);
-        break;
-
-      case 'get-project':
-        if (!args.projectIdOrKey) {
-          console.error('ERROR: "projectIdOrKey" parameter is required');
+      case 'list-project-events':
+        if (!args.projectSlug) {
+          console.error('ERROR: "projectSlug" parameter is required');
           process.exit(1);
         }
-        result = await getProject(profile, args.projectIdOrKey, format);
+        result = await listProjectEvents(profile, args.projectSlug, args, format);
         break;
 
-      case 'list-issues':
-        result = await listIssues(profile, args.jql, args.maxResults, args.startAt, format);
+      case 'list-project-issues':
+        if (!args.projectSlug) {
+          console.error('ERROR: "projectSlug" parameter is required');
+          process.exit(1);
+        }
+        result = await listProjectIssues(profile, args.projectSlug, args, format);
+        break;
+
+      case 'list-org-issues':
+        result = await listOrgIssues(profile, args, format);
         break;
 
       case 'get-issue':
-        if (!args.issueIdOrKey) {
-          console.error('ERROR: "issueIdOrKey" parameter is required');
+        if (!args.issueId) {
+          console.error('ERROR: "issueId" parameter is required');
           process.exit(1);
         }
-        result = await getIssue(profile, args.issueIdOrKey, format);
-        break;
-
-      case 'create-issue':
-        if (!args.fields) {
-          console.error('ERROR: "fields" parameter is required');
-          process.exit(1);
-        }
-        result = await createIssue(profile, args.fields, format);
+        result = await getIssue(profile, args.issueId, format);
         break;
 
       case 'update-issue':
-        if (!args.issueIdOrKey || !args.fields) {
-          console.error('ERROR: "issueIdOrKey" and "fields" parameters are required');
+        if (!args.issueId) {
+          console.error('ERROR: "issueId" parameter is required');
           process.exit(1);
         }
-        result = await updateIssue(profile, args.issueIdOrKey, args.fields);
+        result = await updateIssue(profile, args.issueId, args);
         break;
 
-      case 'add-comment':
-        if (!args.issueIdOrKey || !args.body) {
-          console.error('ERROR: "issueIdOrKey" and "body" parameters are required');
+      case 'list-issue-events':
+        if (!args.issueId) {
+          console.error('ERROR: "issueId" parameter is required');
           process.exit(1);
         }
-        result = await addComment(profile, args.issueIdOrKey, args.body, args.markdown || false, format);
+        result = await listIssueEvents(profile, args.issueId, args, format);
         break;
 
-      case 'delete-issue':
-        if (!args.issueIdOrKey) {
-          console.error('ERROR: "issueIdOrKey" parameter is required');
+      case 'get-event':
+        if (!args.projectSlug || !args.eventId) {
+          console.error('ERROR: "projectSlug" and "eventId" parameters are required');
           process.exit(1);
         }
-        result = await deleteIssue(profile, args.issueIdOrKey);
+        result = await getEvent(profile, args.projectSlug, args.eventId, format);
         break;
 
-      case 'get-user':
-        result = await getUser(profile, args.accountId, args.username, format);
+      case 'get-issue-event':
+        if (!args.issueId || !args.eventId) {
+          console.error('ERROR: "issueId" and "eventId" parameters are required');
+          process.exit(1);
+        }
+        result = await getIssueEvent(profile, args.issueId, args.eventId, format);
+        break;
+
+      case 'get-tag-details':
+        if (!args.issueId || !args.tagKey) {
+          console.error('ERROR: "issueId" and "tagKey" parameters are required');
+          process.exit(1);
+        }
+        result = await getTagDetails(profile, args.issueId, args.tagKey, args, format);
+        break;
+
+      case 'list-tag-values':
+        if (!args.issueId || !args.tagKey) {
+          console.error('ERROR: "issueId" and "tagKey" parameters are required');
+          process.exit(1);
+        }
+        result = await listTagValues(profile, args.issueId, args.tagKey, args, format);
+        break;
+
+      case 'list-issue-hashes':
+        if (!args.issueId) {
+          console.error('ERROR: "issueId" parameter is required');
+          process.exit(1);
+        }
+        result = await listIssueHashes(profile, args.issueId, format);
+        break;
+
+      case 'debug-source-maps':
+        if (!args.projectSlug || !args.eventId) {
+          console.error('ERROR: "projectSlug" and "eventId" parameters are required');
+          process.exit(1);
+        }
+        result = await debugSourceMaps(profile, args.projectSlug, args.eventId, args, format);
         break;
 
       case 'test-connection':

@@ -3,7 +3,7 @@ import os from 'os';
 import path from 'path';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 
-import { getJiraClientOptions, loadConfig } from '../../../src/utils/config-loader.js';
+import { getSentryClientOptions, loadConfig } from '../../../src/utils/config-loader.js';
 import type { Config } from '../../../src/utils/config-loader.js';
 
 describe('config-loader', () => {
@@ -11,7 +11,7 @@ describe('config-loader', () => {
 
   beforeEach(() => {
     // Create a temporary directory for test configs
-    testDir = fs.mkdtempSync(path.join(os.tmpdir(), 'jira-api-cli-test-'));
+    testDir = fs.mkdtempSync(path.join(os.tmpdir(), 'sentry-api-cli-test-'));
     fs.mkdirSync(path.join(testDir, '.claude'));
   });
 
@@ -21,40 +21,39 @@ describe('config-loader', () => {
   });
 
   describe('loadConfig', () => {
-    it('should load valid Jira configuration file', () => {
+    it('should load valid Sentry configuration file', () => {
       const configContent = `---
 profiles:
-  cloud:
-    host: https://your-domain.atlassian.net
-    email: user@example.com
-    apiToken: YOUR_API_TOKEN_HERE
+  production:
+    authToken: YOUR_AUTH_TOKEN_HERE
+    organization: your-org-slug
   staging:
-    host: https://staging.atlassian.net
-    email: staging@example.com
-    apiToken: STAGING_TOKEN_HERE
+    authToken: STAGING_TOKEN_HERE
+    organization: staging-org
+    baseUrl: https://staging.sentry.io/api/0
 
-defaultProfile: cloud
+defaultProfile: production
 defaultFormat: json
 ---
 
-# Jira Connection Profiles
+# Sentry Connection Profiles
 `;
 
-      const configPath = path.join(testDir, '.claude', 'jira-connector.local.md');
+      const configPath = path.join(testDir, '.claude', 'sentry-connector.local.md');
       fs.writeFileSync(configPath, configContent);
 
       const config = loadConfig(testDir);
 
       expect(config.profiles).toBeDefined();
-      expect(config.profiles.cloud).toBeDefined();
-      expect(config.profiles.cloud.host).toBe('https://your-domain.atlassian.net');
-      expect(config.profiles.cloud.email).toBe('user@example.com');
-      expect(config.profiles.cloud.apiToken).toBe('YOUR_API_TOKEN_HERE');
+      expect(config.profiles.production).toBeDefined();
+      expect(config.profiles.production.authToken).toBe('YOUR_AUTH_TOKEN_HERE');
+      expect(config.profiles.production.organization).toBe('your-org-slug');
 
       expect(config.profiles.staging).toBeDefined();
-      expect(config.profiles.staging.host).toBe('https://staging.atlassian.net');
+      expect(config.profiles.staging.authToken).toBe('STAGING_TOKEN_HERE');
+      expect(config.profiles.staging.baseUrl).toBe('https://staging.sentry.io/api/0');
 
-      expect(config.defaultProfile).toBe('cloud');
+      expect(config.defaultProfile).toBe('production');
       expect(config.defaultFormat).toBe('json');
     });
 
@@ -63,12 +62,12 @@ defaultFormat: json
     });
 
     it('should throw error if frontmatter is missing', () => {
-      const configContent = `# Jira Connection Profiles
+      const configContent = `# Sentry Connection Profiles
 
 This is just markdown content without frontmatter.
 `;
 
-      const configPath = path.join(testDir, '.claude', 'jira-connector.local.md');
+      const configPath = path.join(testDir, '.claude', 'sentry-connector.local.md');
       fs.writeFileSync(configPath, configContent);
 
       expect(() => loadConfig(testDir)).toThrow('Invalid configuration file format');
@@ -76,11 +75,11 @@ This is just markdown content without frontmatter.
 
     it('should throw error if profiles are missing', () => {
       const configContent = `---
-defaultProfile: cloud
+defaultProfile: production
 ---
 `;
 
-      const configPath = path.join(testDir, '.claude', 'jira-connector.local.md');
+      const configPath = path.join(testDir, '.claude', 'sentry-connector.local.md');
       fs.writeFileSync(configPath, configContent);
 
       expect(() => loadConfig(testDir)).toThrow('Configuration must include "profiles" object');
@@ -90,65 +89,46 @@ defaultProfile: cloud
       const configContent = `---
 profiles:
   incomplete:
-    host: https://your-domain.atlassian.net
-    email: user@example.com
-    # Missing apiToken
+    authToken: TOKEN_HERE
+    # Missing organization
 ---
 `;
 
-      const configPath = path.join(testDir, '.claude', 'jira-connector.local.md');
+      const configPath = path.join(testDir, '.claude', 'sentry-connector.local.md');
       fs.writeFileSync(configPath, configContent);
 
       expect(() => loadConfig(testDir)).toThrow('missing required field');
     });
 
-    it('should throw error if host does not start with http:// or https://', () => {
+    it('should throw error if baseUrl does not start with http:// or https://', () => {
       const configContent = `---
 profiles:
   invalid:
-    host: your-domain.atlassian.net
-    email: user@example.com
-    apiToken: TOKEN_HERE
+    authToken: TOKEN_HERE
+    organization: my-org
+    baseUrl: sentry.io/api/0
 ---
 `;
 
-      const configPath = path.join(testDir, '.claude', 'jira-connector.local.md');
+      const configPath = path.join(testDir, '.claude', 'sentry-connector.local.md');
       fs.writeFileSync(configPath, configContent);
 
-      expect(() => loadConfig(testDir)).toThrow('host must start with http:// or https://');
-    });
-
-    it('should throw error if email is invalid', () => {
-      const configContent = `---
-profiles:
-  invalid:
-    host: https://your-domain.atlassian.net
-    email: invalid-email
-    apiToken: TOKEN_HERE
----
-`;
-
-      const configPath = path.join(testDir, '.claude', 'jira-connector.local.md');
-      fs.writeFileSync(configPath, configContent);
-
-      expect(() => loadConfig(testDir)).toThrow('email appears to be invalid');
+      expect(() => loadConfig(testDir)).toThrow('baseUrl must start with http:// or https://');
     });
 
     it('should use first profile as default if defaultProfile not specified', () => {
       const configContent = `---
 profiles:
   first:
-    host: https://first.atlassian.net
-    email: first@example.com
-    apiToken: FIRST_TOKEN
+    authToken: FIRST_TOKEN
+    organization: first-org
   second:
-    host: https://second.atlassian.net
-    email: second@example.com
-    apiToken: SECOND_TOKEN
+    authToken: SECOND_TOKEN
+    organization: second-org
 ---
 `;
 
-      const configPath = path.join(testDir, '.claude', 'jira-connector.local.md');
+      const configPath = path.join(testDir, '.claude', 'sentry-connector.local.md');
       fs.writeFileSync(configPath, configContent);
 
       const config = loadConfig(testDir);
@@ -159,14 +139,13 @@ profiles:
     it('should use json as default format if not specified', () => {
       const configContent = `---
 profiles:
-  cloud:
-    host: https://your-domain.atlassian.net
-    email: user@example.com
-    apiToken: TOKEN_HERE
+  production:
+    authToken: TOKEN_HERE
+    organization: my-org
 ---
 `;
 
-      const configPath = path.join(testDir, '.claude', 'jira-connector.local.md');
+      const configPath = path.join(testDir, '.claude', 'sentry-connector.local.md');
       fs.writeFileSync(configPath, configContent);
 
       const config = loadConfig(testDir);
@@ -180,15 +159,14 @@ profiles:
       formats.forEach(format => {
         const configContent = `---
 profiles:
-  cloud:
-    host: https://your-domain.atlassian.net
-    email: user@example.com
-    apiToken: TOKEN_HERE
+  production:
+    authToken: TOKEN_HERE
+    organization: my-org
 defaultFormat: ${format}
 ---
 `;
 
-        const configPath = path.join(testDir, '.claude', 'jira-connector.local.md');
+        const configPath = path.join(testDir, '.claude', 'sentry-connector.local.md');
         fs.writeFileSync(configPath, configContent);
 
         const config = loadConfig(testDir);
@@ -196,88 +174,85 @@ defaultFormat: ${format}
       });
     });
 
-    it('should support http:// URLs for on-premise Jira', () => {
+    it('should support custom baseUrl for self-hosted Sentry', () => {
       const configContent = `---
 profiles:
-  onpremise:
-    host: http://jira.internal.company.com
-    email: user@company.com
-    apiToken: TOKEN_HERE
+  selfhosted:
+    authToken: TOKEN_HERE
+    organization: my-org
+    baseUrl: https://sentry.mycompany.com/api/0
 ---
 `;
 
-      const configPath = path.join(testDir, '.claude', 'jira-connector.local.md');
+      const configPath = path.join(testDir, '.claude', 'sentry-connector.local.md');
       fs.writeFileSync(configPath, configContent);
 
       const config = loadConfig(testDir);
 
-      expect(config.profiles.onpremise.host).toBe('http://jira.internal.company.com');
+      expect(config.profiles.selfhosted.baseUrl).toBe('https://sentry.mycompany.com/api/0');
     });
   });
 
-  describe('getJiraClientOptions', () => {
+  describe('getSentryClientOptions', () => {
     let config: Config;
 
     beforeEach(() => {
       const configContent = `---
 profiles:
-  cloud:
-    host: https://your-domain.atlassian.net
-    email: cloud@example.com
-    apiToken: CLOUD_TOKEN
-  onpremise:
-    host: http://jira.internal.company.com
-    email: onprem@company.com
-    apiToken: ONPREM_TOKEN
+  production:
+    authToken: PROD_TOKEN
+    organization: prod-org
+  staging:
+    authToken: STAGING_TOKEN
+    organization: staging-org
+    baseUrl: https://staging.sentry.io/api/0
 ---
 `;
 
-      const configPath = path.join(testDir, '.claude', 'jira-connector.local.md');
+      const configPath = path.join(testDir, '.claude', 'sentry-connector.local.md');
       fs.writeFileSync(configPath, configContent);
 
       config = loadConfig(testDir);
     });
 
-    it('should return correct Jira client options for profile', () => {
-      const options = getJiraClientOptions(config, 'cloud');
+    it('should return correct Sentry client options for profile', () => {
+      const options = getSentryClientOptions(config, 'production');
 
-      expect(options.host).toBe('https://your-domain.atlassian.net');
-      expect(options.authentication).toBeDefined();
-      expect(options.authentication.basic).toBeDefined();
-      expect(options.authentication.basic.email).toBe('cloud@example.com');
-      expect(options.authentication.basic.apiToken).toBe('CLOUD_TOKEN');
+      expect(options.authToken).toBe('PROD_TOKEN');
+      expect(options.organization).toBe('prod-org');
+      expect(options.baseUrl).toBe('https://sentry.io/api/0'); // Default
     });
 
-    it('should return correct options for on-premise profile', () => {
-      const options = getJiraClientOptions(config, 'onpremise');
+    it('should return correct options with custom baseUrl', () => {
+      const options = getSentryClientOptions(config, 'staging');
 
-      expect(options.host).toBe('http://jira.internal.company.com');
-      expect(options.authentication.basic.email).toBe('onprem@company.com');
-      expect(options.authentication.basic.apiToken).toBe('ONPREM_TOKEN');
+      expect(options.authToken).toBe('STAGING_TOKEN');
+      expect(options.organization).toBe('staging-org');
+      expect(options.baseUrl).toBe('https://staging.sentry.io/api/0');
     });
 
     it('should throw error for non-existent profile', () => {
-      expect(() => getJiraClientOptions(config, 'nonexistent')).toThrow('Profile "nonexistent" not found');
+      expect(() => getSentryClientOptions(config, 'nonexistent')).toThrow('Profile "nonexistent" not found');
     });
 
     it('should list available profiles in error message', () => {
       try {
-        getJiraClientOptions(config, 'nonexistent');
+        getSentryClientOptions(config, 'nonexistent');
         expect.fail('Should have thrown error');
       } catch (error: unknown) {
         const errorMessage = error instanceof Error ? error.message : String(error);
         expect(errorMessage).toContain('Available profiles:');
-        expect(errorMessage).toContain('cloud');
-        expect(errorMessage).toContain('onpremise');
+        expect(errorMessage).toContain('production');
+        expect(errorMessage).toContain('staging');
       }
     });
 
-    it('should use basic authentication structure', () => {
-      const options = getJiraClientOptions(config, 'cloud');
+    it('should include all required fields', () => {
+      const options = getSentryClientOptions(config, 'production');
 
-      expect(options.authentication).toHaveProperty('basic');
-      expect(options.authentication.basic).toHaveProperty('email');
-      expect(options.authentication.basic).toHaveProperty('apiToken');
+      expect(options).toHaveProperty('authToken');
+      expect(options).toHaveProperty('organization');
+      expect(options).toHaveProperty('baseUrl');
     });
   });
 });

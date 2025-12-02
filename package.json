@@ -1,10 +1,10 @@
 {
-  "name": "jira-api-cli",
-  "version": "1.1.1",
-  "description": "A powerful command-line interface for Jira API interaction with support for issues, projects, boards, and multiple output formats",
+  "name": "sentry-api-cli",
+  "version": "2.0.0",
+  "description": "A powerful command-line interface for Sentry API interaction with support for issues, events, projects, and multiple output formats",
   "main": "dist/index.js",
   "bin": {
-    "jira-api-cli": "dist/index.js"
+    "sentry-api-cli": "dist/index.js"
   },
   "type": "module",
   "scripts": {
@@ -22,17 +22,17 @@
     "pre-commit": "npm run format && npm run find-deadcode"
   },
   "keywords": [
-    "jira",
+    "sentry",
     "cli",
     "ai-agents",
     "api",
-    "atlassian"
+    "error-tracking"
   ],
   "author": "Hesed",
   "license": "Apache-2.0",
   "dependencies": {
     "@toon-format/toon": "^2.0.1",
-    "jira.js": "^5.2.2",
+    "axios": "^1.7.9",
     "yaml": "^2.8.1"
   },
   "devDependencies": {
@@ -53,11 +53,11 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/hesedcasa/jira-api-cli.git"
+    "url": "git+https://github.com/hesedcasa/sentry-api-cli.git"
   },
   "types": "./dist/index.d.ts",
   "bugs": {
-    "url": "https://github.com/hesedcasa/jira-api-cli/issues"
+    "url": "https://github.com/hesedcasa/sentry-api-cli/issues"
   },
-  "homepage": "https://github.com/hesedcasa/jira-api-cli#readme"
+  "homepage": "https://github.com/hesedcasa/sentry-api-cli#readme"
 }

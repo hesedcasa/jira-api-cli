@@ -3,15 +3,18 @@ import readline from 'readline';
 import { getCurrentVersion, printAvailableCommands, printCommandDetail } from '../commands/index.js';
 import { COMMANDS } from '../config/index.js';
 import {
-  addComment,
   clearClients,
-  createIssue,
-  deleteIssue,
+  debugSourceMaps,
+  getEvent,
   getIssue,
-  getProject,
-  getUser,
-  listIssues,
-  listProjects,
+  getIssueEvent,
+  getTagDetails,
+  listIssueEvents,
+  listIssueHashes,
+  listOrgIssues,
+  listProjectEvents,
+  listProjectIssues,
+  listTagValues,
   loadConfig,
   testConnection,
   updateIssue,
@@ -19,7 +22,7 @@ import {
 import type { Config } from '../utils/index.js';
 
 /**
- * Main CLI class for Jira API interaction
+ * Main CLI class for Sentry API interaction
  */
 export class wrapper {
   private rl: readline.Interface;
@@ -31,7 +34,7 @@ export class wrapper {
     this.rl = readline.createInterface({
       input: process.stdin,
       output: process.stdout,
-      prompt: 'jira> ',
+      prompt: 'sentry> ',
     });
   }
 
@@ -50,8 +53,8 @@ export class wrapper {
       const errorMessage = error instanceof Error ? error.message : String(error);
       console.error('Failed to load configuration:', errorMessage);
       console.error('\nMake sure:');
-      console.error('1. .claude/jira-connector.local.md exists');
-      console.error('2. The file contains valid Jira profiles in YAML frontmatter');
+      console.error('1. .claude/sentry-connector.local.md exists');
+      console.error('2. The file contains valid Sentry profiles in YAML frontmatter');
       process.exit(1);
     }
   }
@@ -144,7 +147,7 @@ export class wrapper {
   }
 
   /**
-   * Runs a Jira API command
+   * Runs a Sentry API command
    * @param command - The command name to execute
    * @param arg - JSON string or null for the command arguments
    */
@@ -164,70 +167,107 @@ export class wrapper {
       let result;
 
       switch (command) {
-        case 'list-projects':
-          result = await listProjects(profile, format);
-          break;
-
-        case 'get-project':
-          if (!args.projectIdOrKey) {
-            console.error('ERROR: "projectIdOrKey" parameter is required');
+        case 'list-project-events':
+          if (!args.projectSlug) {
+            console.error('ERROR: "projectSlug" parameter is required');
             this.rl.prompt();
             return;
           }
-          result = await getProject(profile, args.projectIdOrKey, format);
+          result = await listProjectEvents(profile, args.projectSlug, args, format);
           break;
 
-        case 'list-issues':
-          result = await listIssues(profile, args.jql, args.maxResults, args.startAt, format);
+        case 'list-project-issues':
+          if (!args.projectSlug) {
+            console.error('ERROR: "projectSlug" parameter is required');
+            this.rl.prompt();
+            return;
+          }
+          result = await listProjectIssues(profile, args.projectSlug, args, format);
+          break;
+
+        case 'list-org-issues':
+          result = await listOrgIssues(profile, args, format);
           break;
 
         case 'get-issue':
-          if (!args.issueIdOrKey) {
-            console.error('ERROR: "issueIdOrKey" parameter is required');
+          if (!args.issueId) {
+            console.error('ERROR: "issueId" parameter is required');
             this.rl.prompt();
             return;
           }
-          result = await getIssue(profile, args.issueIdOrKey, format);
-          break;
-
-        case 'create-issue':
-          if (!args.fields) {
-            console.error('ERROR: "fields" parameter is required');
-            this.rl.prompt();
-            return;
-          }
-          result = await createIssue(profile, args.fields, format);
+          result = await getIssue(profile, args.issueId, format);
           break;
 
         case 'update-issue':
-          if (!args.issueIdOrKey || !args.fields) {
-            console.error('ERROR: "issueIdOrKey" and "fields" parameters are required');
+          if (!args.issueId) {
+            console.error('ERROR: "issueId" parameter is required');
             this.rl.prompt();
             return;
           }
-          result = await updateIssue(profile, args.issueIdOrKey, args.fields);
+          result = await updateIssue(profile, args.issueId, args);
           break;
 
-        case 'add-comment':
-          if (!args.issueIdOrKey || !args.body) {
-            console.error('ERROR: "issueIdOrKey" and "body" parameters are required');
+        case 'list-issue-events':
+          if (!args.issueId) {
+            console.error('ERROR: "issueId" parameter is required');
             this.rl.prompt();
             return;
           }
-          result = await addComment(profile, args.issueIdOrKey, args.body, args.markdown || false, format);
+          result = await listIssueEvents(profile, args.issueId, args, format);
           break;
 
-        case 'delete-issue':
-          if (!args.issueIdOrKey) {
-            console.error('ERROR: "issueIdOrKey" parameter is required');
+        case 'get-event':
+          if (!args.projectSlug || !args.eventId) {
+            console.error('ERROR: "projectSlug" and "eventId" parameters are required');
             this.rl.prompt();
             return;
           }
-          result = await deleteIssue(profile, args.issueIdOrKey);
+          result = await getEvent(profile, args.projectSlug, args.eventId, format);
           break;
 
-        case 'get-user':
-          result = await getUser(profile, args.accountId, args.username, format);
+        case 'get-issue-event':
+          if (!args.issueId || !args.eventId) {
+            console.error('ERROR: "issueId" and "eventId" parameters are required');
+            this.rl.prompt();
+            return;
+          }
+          result = await getIssueEvent(profile, args.issueId, args.eventId, format);
+          break;
+
+        case 'get-tag-details':
+          if (!args.issueId || !args.tagKey) {
+            console.error('ERROR: "issueId" and "tagKey" parameters are required');
+            this.rl.prompt();
+            return;
+          }
+          result = await getTagDetails(profile, args.issueId, args.tagKey, args, format);
+          break;
+
+        case 'list-tag-values':
+          if (!args.issueId || !args.tagKey) {
+            console.error('ERROR: "issueId" and "tagKey" parameters are required');
+            this.rl.prompt();
+            return;
+          }
+          result = await listTagValues(profile, args.issueId, args.tagKey, args, format);
+          break;
+
+        case 'list-issue-hashes':
+          if (!args.issueId) {
+            console.error('ERROR: "issueId" parameter is required');
+            this.rl.prompt();
+            return;
+          }
+          result = await listIssueHashes(profile, args.issueId, format);
+          break;
+
+        case 'debug-source-maps':
+          if (!args.projectSlug || !args.eventId) {
+            console.error('ERROR: "projectSlug" and "eventId" parameters are required');
+            this.rl.prompt();
+            return;
+          }
+          result = await debugSourceMaps(profile, args.projectSlug, args.eventId, args, format);
           break;
 
         case 'test-connection':
@@ -264,7 +304,7 @@ export class wrapper {
     const commandList = COMMANDS.join(', ');
 
     console.log(`
-Jira API CLI v${version}
+Sentry API CLI v${version}
 
 Current Settings:
   Profile: ${currentProfile}
@@ -272,10 +312,10 @@ Current Settings:
 
 Usage:
 
-commands              list all available Jira API commands
+commands              list all available Sentry API commands
 <command> -h          quick help on <command>
 <command> <arg>       run <command> with JSON argument
-profile <name>        switch to a different Jira profile
+profile <name>        switch to a different Sentry profile
 profiles              list all available profiles
 format <type>         set output format (json, toon)
 clear                 clear the screen
@@ -286,11 +326,11 @@ All commands:
 ${commandList}
 
 Examples:
-  list-projects
-  get-project {"projectIdOrKey":"PROJ"}
-  list-issues {"jql":"project = PROJ AND status = Open","maxResults":10}
-  get-issue {"issueIdOrKey":"PROJ-123"}
-  create-issue {"fields":{"summary":"New task","project":{"key":"PROJ"},"issuetype":{"name":"Task"}}}
+  list-org-issues
+  list-project-issues {"projectSlug":"my-project"}
+  get-issue {"issueId":"123456789"}
+  update-issue {"issueId":"123456789","status":"resolved"}
+  list-issue-events {"issueId":"123456789","statsPeriod":"24h"}
   test-connection
 
 `);
@@ -329,10 +369,10 @@ Examples:
   }
 
   /**
-   * Disconnects from Jira and closes the CLI
+   * Disconnects from Sentry and closes the CLI
    */
   private async disconnect(): Promise<void> {
-    console.log('\nClosing Jira connections...');
+    console.log('\nClosing Sentry connections...');
     clearClients();
     this.rl.close();
   }

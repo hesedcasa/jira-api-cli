@@ -1,9 +1,8 @@
 import { encode } from '@toon-format/toon';
-import { Version3Client } from 'jira.js';
+import { ConfluenceClient } from 'confluence.js';
 
 import type { Config } from './config-loader.js';
-import { getJiraClientOptions } from './config-loader.js';
-import { markdownToAdf, textToAdf } from './markdown-to-adf.js';
+import { getConfluenceClientOptions } from './config-loader.js';
 
 /**
  * Generic API result
@@ -16,12 +15,12 @@ export interface ApiResult {
 }
 
 /**
- * Jira API Utility Module
- * Provides core Jira API operations with formatting
+ * Confluence API Utility Module
+ * Provides core Confluence API operations with formatting
  */
-export class JiraUtil {
+export class ConfluenceUtil {
   private config: Config;
-  private clientPool: Map<string, Version3Client>;
+  private clientPool: Map<string, ConfluenceClient>;
 
   constructor(config: Config) {
     this.config = config;
@@ -29,15 +28,15 @@ export class JiraUtil {
   }
 
   /**
-   * Get or create Jira client for a profile
+   * Get or create Confluence client for a profile
    */
-  getClient(profileName: string): Version3Client {
+  getClient(profileName: string): ConfluenceClient {
     if (this.clientPool.has(profileName)) {
       return this.clientPool.get(profileName)!;
     }
 
-    const options = getJiraClientOptions(this.config, profileName);
-    const client = new Version3Client(options);
+    const options = getConfluenceClientOptions(this.config, profileName);
+    const client = new ConfluenceClient(options);
     this.clientPool.set(profileName, client);
 
     return client;
@@ -72,28 +71,28 @@ export class JiraUtil {
   }
 
   /**
-   * List all projects
+   * List all spaces
    */
-  async listProjects(profileName: string, format: 'json' | 'toon' = 'json'): Promise<ApiResult> {
+  async listSpaces(profileName: string, format: 'json' | 'toon' = 'json'): Promise<ApiResult> {
     try {
       const client = this.getClient(profileName);
-      const response = await client.projects.searchProjects();
+      const response = await client.space.getSpaces();
 
-      // Simplify project data for display
-      const projects = response.values || [];
-      const simplifiedProjects = projects.map(
-        (p: { key?: string; name?: string; projectTypeKey?: string; id?: string }) => ({
-          key: p.key,
-          name: p.name,
-          projectTypeKey: p.projectTypeKey,
-          id: p.id,
+      // Simplify space data for display
+      const spaces = response.results || [];
+      const simplifiedSpaces = spaces.map(
+        (s: { key?: string; name?: string; type?: string; id?: string }) => ({
+          key: s.key,
+          name: s.name,
+          type: s.type,
+          id: s.id,
         })
       );
 
       return {
         success: true,
-        data: simplifiedProjects,
-        result: this.formatResult(simplifiedProjects, format),
+        data: simplifiedSpaces,
+        result: this.formatResult(simplifiedSpaces, format),
       };
     } catch (error: unknown) {
       const errorMessage = error instanceof Error ? error.message : String(error);
@@ -105,17 +104,17 @@ export class JiraUtil {
   }
 
   /**
-   * Get project details
+   * Get space details
    */
-  async getProject(profileName: string, projectIdOrKey: string, format: 'json' | 'toon' = 'json'): Promise<ApiResult> {
+  async getSpace(profileName: string, spaceKey: string, format: 'json' | 'toon' = 'json'): Promise<ApiResult> {
     try {
       const client = this.getClient(profileName);
-      const project = await client.projects.getProject({ projectIdOrKey });
+      const space = await client.space.getSpace({ spaceKey });
 
       return {
         success: true,
-        data: project,
-        result: this.formatResult(project, format),
+        data: space,
+        result: this.formatResult(space, format),
       };
     } catch (error: unknown) {
       const errorMessage = error instanceof Error ? error.message : String(error);
@@ -127,37 +126,48 @@ export class JiraUtil {
   }
 
   /**
-   * List issues using JQL
+   * List pages in a space or by CQL query
    */
-  async listIssues(
+  async listPages(
     profileName: string,
-    jql?: string,
-    maxResults = 50,
-    startAt = 0,
+    spaceKey?: string,
+    title?: string,
+    limit = 25,
+    start = 0,
     format: 'json' | 'toon' = 'json'
   ): Promise<ApiResult> {
     try {
       const client = this.getClient(profileName);
-      const response = await client.issueSearch.searchForIssuesUsingJql({
-        jql: jql || '',
-        maxResults,
-        startAt,
+
+      // Build CQL query
+      let cql = 'type=page';
+      if (spaceKey) {
+        cql += ` AND space="${spaceKey}"`;
+      }
+      if (title) {
+        cql += ` AND title~"${title}"`;
+      }
+
+      const response = await client.content.searchContentByCQL({
+        cql,
+        limit,
+        start,
       });
 
-      // Simplify issue data for display
-      const simplifiedIssues =
-        response.issues?.map(issue => ({
-          key: issue.key,
-          summary: issue.fields?.summary,
-          status: (issue.fields?.status as { name?: string })?.name,
-          assignee: (issue.fields?.assignee as { displayName?: string })?.displayName || 'Unassigned',
-          created: issue.fields?.created,
+      // Simplify page data for display
+      const simplifiedPages =
+        response.results?.map(page => ({
+          id: page.id,
+          title: page.title,
+          type: page.type,
+          status: page.status,
+          spaceKey: (page as { space?: { key?: string } }).space?.key,
         })) || [];
 
       return {
         success: true,
-        data: simplifiedIssues,
-        result: this.formatResult(simplifiedIssues, format),
+        data: simplifiedPages,
+        result: this.formatResult(simplifiedPages, format),
       };
     } catch (error: unknown) {
       const errorMessage = error instanceof Error ? error.message : String(error);
@@ -169,17 +179,20 @@ export class JiraUtil {
   }
 
   /**
-   * Get issue details
+   * Get page details
    */
-  async getIssue(profileName: string, issueIdOrKey: string, format: 'json' | 'toon' = 'json'): Promise<ApiResult> {
+  async getPage(profileName: string, pageId: string, format: 'json' | 'toon' = 'json'): Promise<ApiResult> {
     try {
       const client = this.getClient(profileName);
-      const issue = await client.issues.getIssue({ issueIdOrKey });
+      const page = await client.content.getContentById({
+        id: pageId,
+        expand: ['body.storage', 'version', 'space'],
+      });
 
       return {
         success: true,
-        data: issue,
-        result: this.formatResult(issue, format),
+        data: page,
+        result: this.formatResult(page, format),
       };
     } catch (error: unknown) {
       const errorMessage = error instanceof Error ? error.message : String(error);
@@ -191,18 +204,42 @@ export class JiraUtil {
   }
 
   /**
-   * Create a new issue
+   * Create a new page
    */
-  async createIssue(
+  async createPage(
     profileName: string,
-    fields: Record<string, unknown>,
+    spaceKey: string,
+    title: string,
+    body: string,
+    parentId?: string,
     format: 'json' | 'toon' = 'json'
   ): Promise<ApiResult> {
     try {
       const client = this.getClient(profileName);
-      const response = await client.issues.createIssue({
-        fields: fields as Parameters<typeof client.issues.createIssue>[0]['fields'],
-      });
+
+      const contentBody: {
+        type: 'page';
+        title: string;
+        space: { key: string };
+        body: { storage: { value: string; representation: 'storage' } };
+        ancestors?: Array<{ id: string }>;
+      } = {
+        type: 'page',
+        title,
+        space: { key: spaceKey },
+        body: {
+          storage: {
+            value: body,
+            representation: 'storage',
+          },
+        },
+      };
+
+      if (parentId) {
+        contentBody.ancestors = [{ id: parentId }];
+      }
+
+      const response = await client.content.createContent(contentBody);
 
       return {
         success: true,
@@ -219,19 +256,38 @@ export class JiraUtil {
   }
 
   /**
-   * Update an existing issue
+   * Update an existing page
    */
-  async updateIssue(profileName: string, issueIdOrKey: string, fields: Record<string, unknown>): Promise<ApiResult> {
+  async updatePage(
+    profileName: string,
+    pageId: string,
+    title: string,
+    body: string,
+    version: number
+  ): Promise<ApiResult> {
     try {
       const client = this.getClient(profileName);
-      await client.issues.editIssue({
-        issueIdOrKey,
-        fields: fields as Parameters<typeof client.issues.editIssue>[0]['fields'],
+
+      await client.content.updateContent({
+        id: pageId,
+        body: {
+          type: 'page',
+          title,
+          body: {
+            storage: {
+              value: body,
+              representation: 'storage',
+            },
+          },
+          version: {
+            number: version + 1,
+          },
+        },
       });
 
       return {
         success: true,
-        result: `✅ Issue ${issueIdOrKey} updated successfully!`,
+        result: `Page ${pageId} updated successfully!`,
       };
     } catch (error: unknown) {
       const errorMessage = error instanceof Error ? error.message : String(error);
@@ -243,24 +299,29 @@ export class JiraUtil {
   }
 
   /**
-   * Add a comment to an issue
+   * Add a comment to a page
    */
   async addComment(
     profileName: string,
-    issueIdOrKey: string,
+    pageId: string,
     body: string,
-    markdown = false,
     format: 'json' | 'toon' = 'json'
   ): Promise<ApiResult> {
     try {
       const client = this.getClient(profileName);
 
-      // Convert body to ADF format
-      const bodyContent = markdown ? markdownToAdf(body) : textToAdf(body);
-
-      const response = await client.issueComments.addComment({
-        issueIdOrKey,
-        comment: bodyContent as Parameters<typeof client.issueComments.addComment>[0]['comment'],
+      const response = await client.content.createContent({
+        type: 'comment',
+        container: {
+          id: pageId,
+          type: 'page',
+        },
+        body: {
+          storage: {
+            value: body,
+            representation: 'storage',
+          },
+        },
       });
 
       return {
@@ -278,16 +339,16 @@ export class JiraUtil {
   }
 
   /**
-   * Delete an issue
+   * Delete a page
    */
-  async deleteIssue(profileName: string, issueIdOrKey: string): Promise<ApiResult> {
+  async deletePage(profileName: string, pageId: string): Promise<ApiResult> {
     try {
       const client = this.getClient(profileName);
-      await client.issues.deleteIssue({ issueIdOrKey });
+      await client.content.deleteContent({ id: pageId });
 
       return {
         success: true,
-        result: `✅ Issue ${issueIdOrKey} deleted successfully!`,
+        result: `Page ${pageId} deleted successfully!`,
       };
     } catch (error: unknown) {
       const errorMessage = error instanceof Error ? error.message : String(error);
@@ -318,13 +379,16 @@ export class JiraUtil {
           result: this.formatResult(user, format),
         };
       } else if (username) {
-        // Username lookup is deprecated but we can try
-        const users = await client.userSearch.findUsers({ query: username });
-        if (users.length > 0) {
+        // Search for user by username
+        const users = await client.search.searchUser({
+          cql: `user.fullname~"${username}"`,
+          limit: 1,
+        });
+        if (users.results && users.results.length > 0) {
           return {
             success: true,
-            data: users[0],
-            result: this.formatResult(users[0], format),
+            data: users.results[0],
+            result: this.formatResult(users.results[0], format),
           };
         }
         return {
@@ -333,7 +397,7 @@ export class JiraUtil {
         };
       } else {
         // Get current user
-        const user = await client.myself.getCurrentUser();
+        const user = await client.users.getCurrentUser();
         return {
           success: true,
           data: user,
@@ -350,18 +414,17 @@ export class JiraUtil {
   }
 
   /**
-   * Test Jira API connection
+   * Test Confluence API connection
    */
   async testConnection(profileName: string): Promise<ApiResult> {
     try {
       const client = this.getClient(profileName);
-      const serverInfo = await client.serverInfo.getServerInfo();
-      const currentUser = await client.myself.getCurrentUser();
+      const currentUser = await client.users.getCurrentUser();
 
       return {
         success: true,
-        data: { serverInfo, currentUser },
-        result: `✅ Connection successful!\n\nProfile: ${profileName}\nServer Version: ${serverInfo.version}\nServer Title: ${serverInfo.serverTitle}\nLogged in as: ${currentUser.displayName} (${currentUser.emailAddress})`,
+        data: { currentUser },
+        result: `Connection successful!\n\nProfile: ${profileName}\nLogged in as: ${currentUser.displayName} (${currentUser.email})`,
       };
     } catch (error: unknown) {
       const errorMessage = error instanceof Error ? error.message : String(error);

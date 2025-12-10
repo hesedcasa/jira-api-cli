@@ -31,36 +31,36 @@ npm run pre-commit          # Run format + find-deadcode
 
 ## Project Architecture
 
-This is a **Jira API CLI tool** that provides both interactive REPL and headless modes for Jira operations.
+This is a **Confluence API CLI tool** that provides both interactive REPL and headless modes for Confluence operations.
 
 ### Project Structure
 
 ```
 src/
-├── index.ts (29 lines)                    # Main entry point
+├── index.ts                               # Main entry point
 ├── cli/
 │   ├── index.ts                           # Barrel export
-│   └── wrapper.ts (334 lines)             # CLI class with REPL logic
+│   └── wrapper.ts                         # CLI class with REPL logic
 ├── commands/
 │   ├── index.ts                           # Barrel export
-│   ├── helpers.ts (45 lines)              # Command info helpers
-│   └── runner.ts (121 lines)              # Headless command execution
+│   ├── helpers.ts                         # Command info helpers
+│   └── runner.ts                          # Headless command execution
 ├── config/
 │   ├── index.ts                           # Barrel export
-│   └── constants.ts (122 lines)           # Command definitions
+│   └── constants.ts                       # Command definitions
 └── utils/
     ├── index.ts                           # Barrel export
-    ├── argParser.ts (74 lines)            # Command-line argument parser
-    ├── config-loader.ts (120 lines)       # YAML config file loader
-    ├── jira-client.ts (167 lines)         # Jira API wrapper functions
-    └── jira-utils.ts (433 lines)          # Core Jira utility class
+    ├── argParser.ts                       # Command-line argument parser
+    ├── config-loader.ts                   # YAML config file loader
+    ├── confluence-client.ts               # Confluence API wrapper functions
+    └── confluence-utils.ts                # Core Confluence utility class
 
 tests/
 ├── unit/
 │   └── utils/
 │       └── config-loader.test.ts          # Tests for config loading
 └── integration/
-    └── jira-client.test.ts                # Integration tests for Jira ops
+    └── (integration tests)
 ```
 
 ### Core Components
@@ -74,16 +74,16 @@ tests/
 #### CLI Module (`src/cli/`)
 
 - **wrapper class**: Main orchestrator managing:
-  - `connect()` - Loads configuration from `.claude/jira-connector.local.md`
+  - `connect()` - Loads configuration from `.claude/confluence-connector.local.md`
   - `start()` - Initiates interactive REPL with readline interface
   - `handleCommand()` - Parses and processes user commands
-  - `runCommand()` - Executes Jira commands with result formatting
+  - `runCommand()` - Executes Confluence commands with result formatting
   - `disconnect()` - Graceful cleanup on exit signals (SIGINT/SIGTERM)
 
 #### Commands Module (`src/commands/`)
 
 - `helpers.ts` - Display command information and help
-  - `printAvailableCommands()` - Lists all 11 available commands
+  - `printAvailableCommands()` - Lists all 10 available commands
   - `printCommandDetail(command)` - Shows detailed help for specific command
   - `getCurrentVersion()` - Reads version from package.json
 - `runner.ts` - Execute commands in headless mode
@@ -92,7 +92,7 @@ tests/
 #### Config Module (`src/config/`)
 
 - `constants.ts` - Centralized configuration
-  - `COMMANDS[]` - Array of 11 available Jira command names
+  - `COMMANDS[]` - Array of 10 available Confluence command names
   - `COMMANDS_INFO[]` - Brief descriptions for each command
   - `COMMANDS_DETAIL[]` - Detailed parameter documentation
 
@@ -101,26 +101,26 @@ tests/
 - `argParser.ts` - Command-line argument handling
   - `parseArguments(args)` - Parses CLI flags and routes execution
 - `config-loader.ts` - Configuration file management
-  - `loadConfig(projectRoot)` - Loads `.claude/jira-connector.local.md`
-  - `getJiraClientOptions(config, profileName)` - Builds jira.js client options
-  - TypeScript interfaces: `Config`, `JiraProfile`, `JiraClientOptions`
-- `jira-client.ts` - Jira API wrapper functions
-  - Exports: `listProjects()`, `getProject()`, `listIssues()`, `getIssue()`, `createIssue()`, `updateIssue()`, `addComment()`, `deleteIssue()`, `getUser()`, `testConnection()`, `clearClients()`
-  - Manages singleton `JiraUtil` instance
-- `jira-utils.ts` - Core Jira utility class
-  - `JiraUtil` class - Client pooling and API calls
-  - Implements all 11 Jira commands
+  - `loadConfig(projectRoot)` - Loads `.claude/confluence-connector.local.md`
+  - `getConfluenceClientOptions(config, profileName)` - Builds confluence.js client options
+  - TypeScript interfaces: `Config`, `ConfluenceProfile`, `ConfluenceClientOptions`
+- `confluence-client.ts` - Confluence API wrapper functions
+  - Exports: `listSpaces()`, `getSpace()`, `listPages()`, `getPage()`, `createPage()`, `updatePage()`, `addComment()`, `deletePage()`, `getUser()`, `testConnection()`, `clearClients()`
+  - Manages singleton `ConfluenceUtil` instance
+- `confluence-utils.ts` - Core Confluence utility class
+  - `ConfluenceUtil` class - Client pooling and API calls
+  - Implements all 10 Confluence commands
   - Formats results as JSON or TOON
 
 ### Configuration System
 
-The CLI loads Jira profiles from `.claude/jira-connector.local.md` with YAML frontmatter:
+The CLI loads Confluence profiles from `.claude/confluence-connector.local.md` with YAML frontmatter:
 
 ```yaml
 ---
 profiles:
   cloud:
-    host: https://your-domain.atlassian.net
+    host: https://your-domain.atlassian.net/wiki
     email: your-email@example.com
     apiToken: YOUR_API_TOKEN_HERE
 
@@ -132,26 +132,25 @@ defaultFormat: json
 **Key behaviors:**
 
 - Profiles are referenced by name in commands
-- Multiple profiles support different Jira instances (cloud, staging, etc.)
+- Multiple profiles support different Confluence instances (cloud, staging, etc.)
 - Configuration is validated on load with clear error messages
 - API tokens are used for authentication (basic auth)
 
 ### REPL Interface
 
-- Custom prompt: `jira>`
+- Custom prompt: `confluence>`
 - **Special commands**: `help`, `commands`, `profiles`, `profile <name>`, `format <type>`, `clear`, `exit/quit/q`
-- **Jira commands**: 11 commands accepting JSON arguments
-  1. `list-projects` - List all accessible projects
-  2. `get-project` - Get details of a specific project
-  3. `list-issues` - List issues using JQL query
-  4. `get-issue` - Get details of a specific issue
-  5. `create-issue` - Create a new issue
-  6. `update-issue` - Update an existing issue
-  7. `add-comment` - Add a comment to an issue
-  8. `delete-issue` - Delete an issue
-  9. `list-boards` - List agile boards
-  10. `get-user` - Get user information
-  11. `test-connection` - Test Jira API connection
+- **Confluence commands**: 10 commands accepting JSON arguments
+  1. `list-spaces` - List all accessible spaces
+  2. `get-space` - Get details of a specific space
+  3. `list-pages` - List pages in a space or by search criteria
+  4. `get-page` - Get details of a specific page
+  5. `create-page` - Create a new page
+  6. `update-page` - Update an existing page
+  7. `add-comment` - Add a comment to a page
+  8. `delete-page` - Delete a page
+  9. `get-user` - Get user information
+  10. `test-connection` - Test Confluence API connection
 
 ### TypeScript Configuration
 
@@ -162,19 +161,18 @@ defaultFormat: json
 
 ## Available Commands
 
-The CLI provides **11 Jira API commands**:
+The CLI provides **10 Confluence API commands**:
 
-1. **list-projects** - List all accessible projects
-2. **get-project** - Get details of a specific project
-3. **list-issues** - List issues using JQL query
-4. **get-issue** - Get details of a specific issue
-5. **create-issue** - Create a new issue
-6. **update-issue** - Update an existing issue
-7. **add-comment** - Add a comment to an issue
-8. **delete-issue** - Delete an issue
-9. **list-boards** - List agile boards (experimental)
-10. **get-user** - Get user information
-11. **test-connection** - Test Jira API connection
+1. **list-spaces** - List all accessible spaces
+2. **get-space** - Get details of a specific space
+3. **list-pages** - List pages in a space or by search criteria
+4. **get-page** - Get details of a specific page
+5. **create-page** - Create a new page
+6. **update-page** - Update an existing page
+7. **add-comment** - Add a comment to a page
+8. **delete-page** - Delete a page
+9. **get-user** - Get user information
+10. **test-connection** - Test Confluence API connection
 
 ### Command Examples
 
@@ -183,25 +181,27 @@ The CLI provides **11 Jira API commands**:
 npm start
 
 # Inside the REPL:
-jira> commands                          # List all 11 commands
-jira> help                              # Show help
-jira> profiles                          # List available profiles
-jira> profile production                # Switch profile
-jira> format json                       # Change output format
-jira> list-projects
-jira> get-issue '{"issueIdOrKey":"PROJ-123"}'
-jira> list-issues '{"jql":"project = PROJ AND status = Open","maxResults":10}'
-jira> add-comment '{"issueIdOrKey":"PROJ-123","body":"Great work!","markdown":true}'
-jira> exit                              # Exit
+confluence> commands                          # List all 10 commands
+confluence> help                              # Show help
+confluence> profiles                          # List available profiles
+confluence> profile production                # Switch profile
+confluence> format json                       # Change output format
+confluence> list-spaces
+confluence> get-space '{"spaceKey":"DOCS"}'
+confluence> list-pages '{"spaceKey":"DOCS","title":"Getting Started","limit":10}'
+confluence> get-page '{"pageId":"123456"}'
+confluence> create-page '{"spaceKey":"DOCS","title":"New Page","body":"<p>Hello World</p>"}'
+confluence> add-comment '{"pageId":"123456","body":"<p>Great article!</p>"}'
+confluence> exit                              # Exit
 
 # Headless mode (one-off commands):
-npx jira-api-cli test-connection '{"profile":"cloud"}'
-npx jira-api-cli list-projects
-npx jira-api-cli get-issue '{"issueIdOrKey":"PROJ-123","format":"json"}'
-npx jira-api-cli --commands        # List all commands
-npx jira-api-cli list-issues -h    # Command-specific help
-npx jira-api-cli --help            # General help
-npx jira-api-cli --version         # Show version
+npx confluence-api-cli test-connection '{"profile":"cloud"}'
+npx confluence-api-cli list-spaces
+npx confluence-api-cli get-page '{"pageId":"123456","format":"json"}'
+npx confluence-api-cli --commands        # List all commands
+npx confluence-api-cli list-pages -h     # Command-specific help
+npx confluence-api-cli --help            # General help
+npx confluence-api-cli --version         # Show version
 ```
 
 ## Code Structure & Module Responsibilities
@@ -217,7 +217,7 @@ npx jira-api-cli --version         # Show version
 - Interactive REPL management
 - Configuration loading and profile switching
 - User command processing
-- Jira command execution with result formatting
+- Confluence command execution with result formatting
 - Graceful shutdown handling
 
 ### Command Helpers (`commands/helpers.ts`)
@@ -240,21 +240,21 @@ npx jira-api-cli --version         # Show version
 
 ### Config Loader (`utils/config-loader.ts`)
 
-- Reads and parses `.claude/jira-connector.local.md`
-- Extracts YAML frontmatter with Jira profiles
+- Reads and parses `.claude/confluence-connector.local.md`
+- Extracts YAML frontmatter with Confluence profiles
 - Validates required fields for each profile
 - Provides default values for settings
-- Builds jira.js client options
+- Builds confluence.js client options
 
-### Jira Client (`utils/jira-client.ts`)
+### Confluence Client (`utils/confluence-client.ts`)
 
-- Wrapper functions for all Jira operations
-- Manages singleton JiraUtil instance
+- Wrapper functions for all Confluence operations
+- Manages singleton ConfluenceUtil instance
 - Exports clean async functions for each command
 
-### Jira Utils (`utils/jira-utils.ts`)
+### Confluence Utils (`utils/confluence-utils.ts`)
 
-- Core Jira API interaction logic
+- Core Confluence API interaction logic
 - Client pooling per profile
 - API call execution
 - Result formatting (JSON, TOON)
@@ -271,16 +271,16 @@ npx jira-api-cli --version         # Show version
 - **Barrel Exports**: Each module directory has `index.ts` exporting public APIs
 - **ES Modules**: All imports use `.js` extensions (TypeScript requirement)
 - **Argument Parsing**: Supports JSON arguments for command parameters
-- **Client Pooling**: Reuses Jira clients per profile for efficiency
+- **Client Pooling**: Reuses Confluence clients per profile for efficiency
 - **Signal Handling**: Graceful shutdown on Ctrl+C (SIGINT) and SIGTERM
 - **Error Handling**: Try-catch blocks with user-friendly error messages
-- **Configuration**: YAML frontmatter in `.claude/jira-connector.local.md`
+- **Configuration**: YAML frontmatter in `.claude/confluence-connector.local.md`
 
 ## Dependencies
 
 **Runtime**:
 
-- `jira.js@^4.0.1` - Jira API client for Node.js
+- `confluence.js@^2.1.0` - Confluence API client for Node.js
 - `yaml@^2.8.1` - YAML parser for config files
 - `@toon-format/toon@^2.0.0` - TOON format encoder
 
@@ -325,17 +325,18 @@ tests/
 │   └── utils/
 │       └── config-loader.test.ts      # Config loading and validation
 └── integration/
-    └── jira-client.test.ts            # Jira API operations end-to-end
+    └── (integration tests)
 ```
 
 ## Important Notes
 
-1. **Configuration Required**: CLI requires `.claude/jira-connector.local.md` with valid Jira profiles
+1. **Configuration Required**: CLI requires `.claude/confluence-connector.local.md` with valid Confluence profiles
 2. **ES2022 Modules**: Project uses `"type": "module"` - no CommonJS
-3. **API Authentication**: Uses Jira API tokens with basic authentication
-4. **Multi-Profile**: Supports multiple Jira instances (cloud, staging, etc.)
+3. **API Authentication**: Uses Confluence API tokens with basic authentication
+4. **Multi-Profile**: Supports multiple Confluence instances (cloud, staging, etc.)
 5. **Flexible Output**: JSON or TOON formats for different use cases
 6. **Client Pooling**: Reuses clients per profile for better performance
+7. **Storage Format**: Page content uses Confluence storage format (XHTML-based)
 
 ## Commit Message Convention
 
@@ -351,12 +352,12 @@ tests/
 **Examples:**
 
 ```
-feat: add list-boards command for agile boards
+feat: add list-spaces command for Confluence spaces
 fix: handle connection timeout errors gracefully
 docs: update configuration examples in README
 refactor: extract API formatting into separate module
-test: add integration tests for Jira operations
-chore: update jira.js to latest version
+test: add integration tests for Confluence operations
+chore: update confluence.js to latest version
 ```
 
 When creating pull requests, the PR title must follow this format.

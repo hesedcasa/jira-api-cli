@@ -3,9 +3,9 @@ import path from 'path';
 import yaml from 'yaml';
 
 /**
- * Jira connection profile configuration
+ * Confluence connection profile configuration
  */
-interface JiraProfile {
+interface ConfluenceProfile {
   host: string;
   email: string;
   apiToken: string;
@@ -15,15 +15,15 @@ interface JiraProfile {
  * Main configuration structure
  */
 export interface Config {
-  profiles: Record<string, JiraProfile>;
+  profiles: Record<string, ConfluenceProfile>;
   defaultProfile: string;
   defaultFormat: 'json' | 'toon';
 }
 
 /**
- * Jira client options for jira.js library
+ * Confluence client options for confluence.js library
  */
-interface JiraClientOptions {
+interface ConfluenceClientOptions {
   host: string;
   authentication: {
     basic: {
@@ -34,18 +34,18 @@ interface JiraClientOptions {
 }
 
 /**
- * Load Jira connection profiles from .claude/jira-connector.local.md
+ * Load Confluence connection profiles from .claude/confluence-connector.local.md
  *
  * @param projectRoot - Project root directory
  * @returns Configuration object with profiles and settings
  */
 export function loadConfig(projectRoot: string): Config {
-  const configPath = path.join(projectRoot, '.claude', 'jira-connector.local.md');
+  const configPath = path.join(projectRoot, '.claude', 'confluence-connector.local.md');
 
   if (!fs.existsSync(configPath)) {
     throw new Error(
       `Configuration file not found at ${configPath}\n` +
-        `Please create .claude/jira-connector.local.md with your Jira profiles.`
+        `Please create .claude/confluence-connector.local.md with your Confluence profiles.`
     );
   }
 
@@ -68,7 +68,7 @@ export function loadConfig(projectRoot: string): Config {
 
   // Validate each profile
   for (const [profileName, profile] of Object.entries(config.profiles)) {
-    const required: Array<keyof JiraProfile> = ['host', 'email', 'apiToken'];
+    const required: Array<keyof ConfluenceProfile> = ['host', 'email', 'apiToken'];
     for (const field of required) {
       if (!profile[field]) {
         throw new Error(`Profile "${profileName}" missing required field: ${field}`);
@@ -94,13 +94,13 @@ export function loadConfig(projectRoot: string): Config {
 }
 
 /**
- * Get Jira client options for a specific profile
+ * Get Confluence client options for a specific profile
  *
  * @param config - Configuration object
  * @param profileName - Profile name
- * @returns Jira client options for jira.js
+ * @returns Confluence client options for confluence.js
  */
-export function getJiraClientOptions(config: Config, profileName: string): JiraClientOptions {
+export function getConfluenceClientOptions(config: Config, profileName: string): ConfluenceClientOptions {
   const profile = config.profiles[profileName];
 
   if (!profile) {

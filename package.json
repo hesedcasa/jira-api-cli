@@ -1,10 +1,10 @@
 {
-  "name": "jira-api-cli",
-  "version": "1.1.1",
-  "description": "A powerful command-line interface for Jira API interaction with support for issues, projects, boards, and multiple output formats",
+  "name": "confluence-api-cli",
+  "version": "1.0.0",
+  "description": "A powerful command-line interface for Confluence API interaction with support for pages, spaces, and multiple output formats",
   "main": "dist/index.js",
   "bin": {
-    "jira-api-cli": "dist/index.js"
+    "confluence-api-cli": "dist/index.js"
   },
   "type": "module",
   "scripts": {
@@ -22,7 +22,7 @@
     "pre-commit": "npm run format && npm run find-deadcode"
   },
   "keywords": [
-    "jira",
+    "confluence",
     "cli",
     "ai-agents",
     "api",
@@ -32,7 +32,7 @@
   "license": "Apache-2.0",
   "dependencies": {
     "@toon-format/toon": "^2.0.1",
-    "jira.js": "^5.2.2",
+    "confluence.js": "^2.1.0",
     "yaml": "^2.8.1"
   },
   "devDependencies": {

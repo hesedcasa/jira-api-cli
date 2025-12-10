@@ -1,20 +1,20 @@
 import {
   addComment,
   clearClients,
-  createIssue,
-  deleteIssue,
-  getIssue,
-  getProject,
+  createPage,
+  deletePage,
+  getPage,
+  getSpace,
   getUser,
-  listIssues,
-  listProjects,
+  listPages,
+  listSpaces,
   loadConfig,
   testConnection,
-  updateIssue,
+  updatePage,
 } from '../utils/index.js';
 
 /**
- * Execute a Jira API command in headless mode
+ * Execute a Confluence API command in headless mode
  * @param command - The command name to execute
  * @param arg - JSON string or null for the command arguments
  */
@@ -37,60 +37,60 @@ export const runCommand = async (
     let result;
 
     switch (command) {
-      case 'list-projects':
-        result = await listProjects(profile, format);
+      case 'list-spaces':
+        result = await listSpaces(profile, format);
         break;
 
-      case 'get-project':
-        if (!args.projectIdOrKey) {
-          console.error('ERROR: "projectIdOrKey" parameter is required');
+      case 'get-space':
+        if (!args.spaceKey) {
+          console.error('ERROR: "spaceKey" parameter is required');
           process.exit(1);
         }
-        result = await getProject(profile, args.projectIdOrKey, format);
+        result = await getSpace(profile, args.spaceKey, format);
         break;
 
-      case 'list-issues':
-        result = await listIssues(profile, args.jql, args.maxResults, args.startAt, format);
+      case 'list-pages':
+        result = await listPages(profile, args.spaceKey, args.title, args.limit, args.start, format);
         break;
 
-      case 'get-issue':
-        if (!args.issueIdOrKey) {
-          console.error('ERROR: "issueIdOrKey" parameter is required');
+      case 'get-page':
+        if (!args.pageId) {
+          console.error('ERROR: "pageId" parameter is required');
           process.exit(1);
         }
-        result = await getIssue(profile, args.issueIdOrKey, format);
+        result = await getPage(profile, args.pageId, format);
         break;
 
-      case 'create-issue':
-        if (!args.fields) {
-          console.error('ERROR: "fields" parameter is required');
+      case 'create-page':
+        if (!args.spaceKey || !args.title || !args.body) {
+          console.error('ERROR: "spaceKey", "title", and "body" parameters are required');
           process.exit(1);
         }
-        result = await createIssue(profile, args.fields, format);
+        result = await createPage(profile, args.spaceKey, args.title, args.body, args.parentId, format);
         break;
 
-      case 'update-issue':
-        if (!args.issueIdOrKey || !args.fields) {
-          console.error('ERROR: "issueIdOrKey" and "fields" parameters are required');
+      case 'update-page':
+        if (!args.pageId || !args.title || !args.body || args.version === undefined) {
+          console.error('ERROR: "pageId", "title", "body", and "version" parameters are required');
           process.exit(1);
         }
-        result = await updateIssue(profile, args.issueIdOrKey, args.fields);
+        result = await updatePage(profile, args.pageId, args.title, args.body, args.version);
         break;
 
       case 'add-comment':
-        if (!args.issueIdOrKey || !args.body) {
-          console.error('ERROR: "issueIdOrKey" and "body" parameters are required');
+        if (!args.pageId || !args.body) {
+          console.error('ERROR: "pageId" and "body" parameters are required');
           process.exit(1);
         }
-        result = await addComment(profile, args.issueIdOrKey, args.body, args.markdown || false, format);
+        result = await addComment(profile, args.pageId, args.body, format);
         break;
 
-      case 'delete-issue':
-        if (!args.issueIdOrKey) {
-          console.error('ERROR: "issueIdOrKey" parameter is required');
+      case 'delete-page':
+        if (!args.pageId) {
+          console.error('ERROR: "pageId" parameter is required');
           process.exit(1);
         }
-        result = await deleteIssue(profile, args.issueIdOrKey);
+        result = await deletePage(profile, args.pageId);
         break;
 
       case 'get-user':

@@ -1,20 +1,19 @@
 /**
- * Jira API CLI Commands Configuration
+ * Confluence API CLI Commands Configuration
  */
 
 /**
- * Available Jira API commands
+ * Available Confluence API commands
  */
 export const COMMANDS: string[] = [
-  'list-projects',
-  'get-project',
-  'list-issues',
-  'get-issue',
-  'create-issue',
-  'update-issue',
+  'list-spaces',
+  'get-space',
+  'list-pages',
+  'get-page',
+  'create-page',
+  'update-page',
   'add-comment',
-  'delete-issue',
-  'list-boards',
+  'delete-page',
   'get-user',
   'test-connection',
 ];
@@ -23,17 +22,16 @@ export const COMMANDS: string[] = [
  * Brief descriptions for each command
  */
 export const COMMANDS_INFO: string[] = [
-  'List all accessible projects',
-  'Get details of a specific project',
-  'List issues using JQL query',
-  'Get details of a specific issue',
-  'Create a new issue',
-  'Update an existing issue',
-  'Add a comment to an issue',
-  'Delete an issue',
-  'List agile boards',
+  'List all accessible spaces',
+  'Get details of a specific space',
+  'List pages in a space or by search criteria',
+  'Get details of a specific page',
+  'Create a new page',
+  'Update an existing page',
+  'Add a comment to a page',
+  'Delete a page',
   'Get user information',
-  'Test Jira API connection',
+  'Test Confluence API connection',
 ];
 
 /**
@@ -42,96 +40,87 @@ export const COMMANDS_INFO: string[] = [
 export const COMMANDS_DETAIL: string[] = [
   `
 Parameters:
-- profile (optional): string - Jira profile name (default: configured default profile)
+- profile (optional): string - Confluence profile name (default: configured default profile)
 - format (optional): string - Output format: json or toon (default: json)
 
 Example:
-list-projects '{"profile":"cloud","format":"json"}'`,
+list-spaces '{"profile":"cloud","format":"json"}'`,
   `
 Parameters:
-- projectIdOrKey (required): string - Project ID or project key
-- profile (optional): string - Jira profile name (default: configured default profile)
+- spaceKey (required): string - Space key
+- profile (optional): string - Confluence profile name (default: configured default profile)
 - format (optional): string - Output format: json or toon (default: json)
 
 Example:
-get-project '{"projectIdOrKey":"PROJ","profile":"cloud","format":"json"}'`,
+get-space '{"spaceKey":"DOCS","profile":"cloud","format":"json"}'`,
   `
 Parameters:
-- jql (optional): string - JQL query to filter issues (default: all issues)
-- maxResults (optional): number - Maximum number of results (default: 50)
-- startAt (optional): number - Starting index for pagination (default: 0)
-- profile (optional): string - Jira profile name (default: configured default profile)
+- spaceKey (optional): string - Space key to filter pages
+- title (optional): string - Title search string
+- limit (optional): number - Maximum number of results (default: 25)
+- start (optional): number - Starting index for pagination (default: 0)
+- profile (optional): string - Confluence profile name (default: configured default profile)
 - format (optional): string - Output format: json or toon (default: json)
 
 Example:
-list-issues '{"jql":"project = PROJ AND status = Open","maxResults":10,"profile":"cloud","format":"json"}'`,
+list-pages '{"spaceKey":"DOCS","title":"Getting Started","limit":10,"profile":"cloud","format":"json"}'`,
   `
 Parameters:
-- issueIdOrKey (required): string - Issue ID or issue key
-- profile (optional): string - Jira profile name (default: configured default profile)
+- pageId (required): string - Page ID
+- profile (optional): string - Confluence profile name (default: configured default profile)
 - format (optional): string - Output format: json or toon (default: json)
 
 Example:
-get-issue '{"issueIdOrKey":"PROJ-123","profile":"cloud","format":"json"}'`,
+get-page '{"pageId":"123456","profile":"cloud","format":"json"}'`,
   `
 Parameters:
-- fields (required): object - Issue fields including summary, project, issuetype, etc.
-- profile (optional): string - Jira profile name (default: configured default profile)
+- spaceKey (required): string - Space key where the page will be created
+- title (required): string - Page title
+- body (required): string - Page body content in storage format (XHTML)
+- parentId (optional): string - Parent page ID for nested pages
+- profile (optional): string - Confluence profile name (default: configured default profile)
 - format (optional): string - Output format: json or toon (default: json)
 
 Example:
-create-issue '{"fields":{"summary":"New issue","project":{"key":"PROJ"},"issuetype":{"name":"Task"}},"profile":"cloud","format":"json"}'`,
+create-page '{"spaceKey":"DOCS","title":"New Page","body":"<p>Hello World</p>","profile":"cloud","format":"json"}'`,
   `
 Parameters:
-- issueIdOrKey (required): string - Issue ID or issue key to update
-- fields (required): object - Issue fields to update
-- profile (optional): string - Jira profile name (default: configured default profile)
+- pageId (required): string - Page ID to update
+- title (required): string - New page title
+- body (required): string - New page body content in storage format (XHTML)
+- version (required): number - Current page version number
+- profile (optional): string - Confluence profile name (default: configured default profile)
+
+Example:
+update-page '{"pageId":"123456","title":"Updated Title","body":"<p>Updated content</p>","version":1,"profile":"cloud"}'`,
+  `
+Parameters:
+- pageId (required): string - Page ID to add comment to
+- body (required): string - Comment body content in storage format (XHTML)
+- profile (optional): string - Confluence profile name (default: configured default profile)
 - format (optional): string - Output format: json or toon (default: json)
 
 Example:
-update-issue '{"issueIdOrKey":"PROJ-123","fields":{"summary":"Updated summary"},"profile":"cloud","format":"json"}'`,
+add-comment '{"pageId":"123456","body":"<p>Great article!</p>","profile":"cloud"}'`,
   `
 Parameters:
-- issueIdOrKey (required): string - Issue ID or issue key to add comment to
-- body (required): string - Comment text content
-- markdown (optional): boolean - Parse body as markdown (default: false)
-- profile (optional): string - Jira profile name (default: configured default profile)
-- format (optional): string - Output format: json or toon (default: json)
-
-Examples:
-Plain text:
-add-comment '{"issueIdOrKey":"PROJ-123","body":"This is a plain text comment"}'
-
-Markdown:
-add-comment '{"issueIdOrKey":"PROJ-123","body":"This is **bold** and *italic*\\n\\n- Item 1\\n- Item 2","markdown":true}'`,
-  `
-Parameters:
-- issueIdOrKey (required): string - Issue ID or issue key to delete
-- profile (optional): string - Jira profile name (default: configured default profile)
+- pageId (required): string - Page ID to delete
+- profile (optional): string - Confluence profile name (default: configured default profile)
 
 Example:
-delete-issue '{"issueIdOrKey":"PROJ-123","profile":"cloud"}'`,
-  `
-Parameters:
-- projectIdOrKey (optional): string - Filter boards by project
-- type (optional): string - Board type (scrum, kanban, simple)
-- profile (optional): string - Jira profile name (default: configured default profile)
-- format (optional): string - Output format: json or toon (default: json)
-
-Example:
-list-boards '{"projectIdOrKey":"PROJ","type":"scrum","profile":"cloud","format":"json"}'`,
+delete-page '{"pageId":"123456","profile":"cloud"}'`,
   `
 Parameters:
 - accountId (optional): string - User account ID
-- username (optional): string - Username (deprecated, use accountId)
-- profile (optional): string - Jira profile name (default: configured default profile)
+- username (optional): string - Username to search for
+- profile (optional): string - Confluence profile name (default: configured default profile)
 - format (optional): string - Output format: json or toon (default: json)
 
 Example:
 get-user '{"accountId":"5b10a2844c20165700ede21g","profile":"cloud","format":"json"}'`,
   `
 Parameters:
-- profile (optional): string - Jira profile name (default: configured default profile)
+- profile (optional): string - Confluence profile name (default: configured default profile)
 
 Example:
 test-connection '{"profile":"cloud"}'`,

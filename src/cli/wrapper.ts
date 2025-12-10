@@ -5,21 +5,21 @@ import { COMMANDS } from '../config/index.js';
 import {
   addComment,
   clearClients,
-  createIssue,
-  deleteIssue,
-  getIssue,
-  getProject,
+  createPage,
+  deletePage,
+  getPage,
+  getSpace,
   getUser,
-  listIssues,
-  listProjects,
+  listPages,
+  listSpaces,
   loadConfig,
   testConnection,
-  updateIssue,
+  updatePage,
 } from '../utils/index.js';
 import type { Config } from '../utils/index.js';
 
 /**
- * Main CLI class for Jira API interaction
+ * Main CLI class for Confluence API interaction
  */
 export class wrapper {
   private rl: readline.Interface;
@@ -31,7 +31,7 @@ export class wrapper {
     this.rl = readline.createInterface({
       input: process.stdin,
       output: process.stdout,
-      prompt: 'jira> ',
+      prompt: 'confluence> ',
     });
   }
 
@@ -50,8 +50,8 @@ export class wrapper {
       const errorMessage = error instanceof Error ? error.message : String(error);
       console.error('Failed to load configuration:', errorMessage);
       console.error('\nMake sure:');
-      console.error('1. .claude/jira-connector.local.md exists');
-      console.error('2. The file contains valid Jira profiles in YAML frontmatter');
+      console.error('1. .claude/confluence-connector.local.md exists');
+      console.error('2. The file contains valid Confluence profiles in YAML frontmatter');
       process.exit(1);
     }
   }
@@ -96,7 +96,7 @@ export class wrapper {
       const newProfile = trimmed.substring(8).trim();
       if (this.config && this.config.profiles[newProfile]) {
         this.currentProfile = newProfile;
-        console.log(`✓ Switched to profile: ${newProfile}`);
+        console.log(`Switched to profile: ${newProfile}`);
       } else {
         const available = this.config ? Object.keys(this.config.profiles).join(', ') : 'none';
         console.error(`ERROR: Profile "${newProfile}" not found. Available: ${available}`);
@@ -109,7 +109,7 @@ export class wrapper {
       const newFormat = trimmed.substring(7).trim() as 'json' | 'toon';
       if (['json', 'toon'].includes(newFormat)) {
         this.currentFormat = newFormat;
-        console.log(`✓ Output format set to: ${newFormat}`);
+        console.log(`Output format set to: ${newFormat}`);
       } else {
         console.error('ERROR: Invalid format. Choose: json or toon');
       }
@@ -144,7 +144,7 @@ export class wrapper {
   }
 
   /**
-   * Runs a Jira API command
+   * Runs a Confluence API command
    * @param command - The command name to execute
    * @param arg - JSON string or null for the command arguments
    */
@@ -164,66 +164,66 @@ export class wrapper {
       let result;
 
       switch (command) {
-        case 'list-projects':
-          result = await listProjects(profile, format);
+        case 'list-spaces':
+          result = await listSpaces(profile, format);
           break;
 
-        case 'get-project':
-          if (!args.projectIdOrKey) {
-            console.error('ERROR: "projectIdOrKey" parameter is required');
+        case 'get-space':
+          if (!args.spaceKey) {
+            console.error('ERROR: "spaceKey" parameter is required');
             this.rl.prompt();
             return;
           }
-          result = await getProject(profile, args.projectIdOrKey, format);
+          result = await getSpace(profile, args.spaceKey, format);
           break;
 
-        case 'list-issues':
-          result = await listIssues(profile, args.jql, args.maxResults, args.startAt, format);
+        case 'list-pages':
+          result = await listPages(profile, args.spaceKey, args.title, args.limit, args.start, format);
           break;
 
-        case 'get-issue':
-          if (!args.issueIdOrKey) {
-            console.error('ERROR: "issueIdOrKey" parameter is required');
+        case 'get-page':
+          if (!args.pageId) {
+            console.error('ERROR: "pageId" parameter is required');
             this.rl.prompt();
             return;
           }
-          result = await getIssue(profile, args.issueIdOrKey, format);
+          result = await getPage(profile, args.pageId, format);
           break;
 
-        case 'create-issue':
-          if (!args.fields) {
-            console.error('ERROR: "fields" parameter is required');
+        case 'create-page':
+          if (!args.spaceKey || !args.title || !args.body) {
+            console.error('ERROR: "spaceKey", "title", and "body" parameters are required');
             this.rl.prompt();
             return;
           }
-          result = await createIssue(profile, args.fields, format);
+          result = await createPage(profile, args.spaceKey, args.title, args.body, args.parentId, format);
           break;
 
-        case 'update-issue':
-          if (!args.issueIdOrKey || !args.fields) {
-            console.error('ERROR: "issueIdOrKey" and "fields" parameters are required');
+        case 'update-page':
+          if (!args.pageId || !args.title || !args.body || args.version === undefined) {
+            console.error('ERROR: "pageId", "title", "body", and "version" parameters are required');
             this.rl.prompt();
             return;
           }
-          result = await updateIssue(profile, args.issueIdOrKey, args.fields);
+          result = await updatePage(profile, args.pageId, args.title, args.body, args.version);
           break;
 
         case 'add-comment':
-          if (!args.issueIdOrKey || !args.body) {
-            console.error('ERROR: "issueIdOrKey" and "body" parameters are required');
+          if (!args.pageId || !args.body) {
+            console.error('ERROR: "pageId" and "body" parameters are required');
             this.rl.prompt();
             return;
           }
-          result = await addComment(profile, args.issueIdOrKey, args.body, args.markdown || false, format);
+          result = await addComment(profile, args.pageId, args.body, format);
           break;
 
-        case 'delete-issue':
-          if (!args.issueIdOrKey) {
-            console.error('ERROR: "issueIdOrKey" parameter is required');
+        case 'delete-page':
+          if (!args.pageId) {
+            console.error('ERROR: "pageId" parameter is required');
             this.rl.prompt();
             return;
           }
-          result = await deleteIssue(profile, args.issueIdOrKey);
+          result = await deletePage(profile, args.pageId);
           break;
 
         case 'get-user':
@@ -264,7 +264,7 @@ export class wrapper {
     const commandList = COMMANDS.join(', ');
 
     console.log(`
-Jira API CLI v${version}
+Confluence API CLI v${version}
 
 Current Settings:
   Profile: ${currentProfile}
@@ -272,10 +272,10 @@ Current Settings:
 
 Usage:
 
-commands              list all available Jira API commands
+commands              list all available Confluence API commands
 <command> -h          quick help on <command>
 <command> <arg>       run <command> with JSON argument
-profile <name>        switch to a different Jira profile
+profile <name>        switch to a different Confluence profile
 profiles              list all available profiles
 format <type>         set output format (json, toon)
 clear                 clear the screen
@@ -286,11 +286,11 @@ All commands:
 ${commandList}
 
 Examples:
-  list-projects
-  get-project {"projectIdOrKey":"PROJ"}
-  list-issues {"jql":"project = PROJ AND status = Open","maxResults":10}
-  get-issue {"issueIdOrKey":"PROJ-123"}
-  create-issue {"fields":{"summary":"New task","project":{"key":"PROJ"},"issuetype":{"name":"Task"}}}
+  list-spaces
+  get-space {"spaceKey":"DOCS"}
+  list-pages {"spaceKey":"DOCS","title":"Getting Started","limit":10}
+  get-page {"pageId":"123456"}
+  create-page {"spaceKey":"DOCS","title":"New Page","body":"<p>Hello World</p>"}
   test-connection
 
 `);
@@ -329,10 +329,10 @@ Examples:
   }
 
   /**
-   * Disconnects from Jira and closes the CLI
+   * Disconnects from Confluence and closes the CLI
    */
   private async disconnect(): Promise<void> {
-    console.log('\nClosing Jira connections...');
+    console.log('\nClosing Confluence connections...');
     clearClients();
     this.rl.close();
   }

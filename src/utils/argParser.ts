@@ -51,24 +51,24 @@ export const parseArguments = async (args: string[]): Promise<boolean> => {
  */
 const printGeneralHelp = (): void => {
   console.log(`
-Jira CLI
+Confluence CLI
 
 Usage:
 
-npx jira-api-cli                             start interactive CLI
-npx jira-api-cli --commands                  list all available commands
-npx jira-api-cli <command> -h                quick help on <command>
-npx jira-api-cli <command> <arg>             run command in headless mode
+npx confluence-api-cli                             start interactive CLI
+npx confluence-api-cli --commands                  list all available commands
+npx confluence-api-cli <command> -h                quick help on <command>
+npx confluence-api-cli <command> <arg>             run command in headless mode
 
 All commands:
 
 ${COMMANDS.join(', ')}
 
 Examples:
-  npx jira-api-cli query '{"query":"SELECT * FROM users LIMIT 5"}'
-  npx jira-api-cli describe-table '{"table":"users","profile":"local"}'
-  npx jira-api-cli list-databases '{"profile":"local"}'
-  npx jira-api-cli test-connection
+  npx confluence-api-cli list-spaces
+  npx confluence-api-cli get-page '{"pageId":"123456"}'
+  npx confluence-api-cli list-pages '{"spaceKey":"DOCS","limit":10}'
+  npx confluence-api-cli test-connection
 
 `);
 };

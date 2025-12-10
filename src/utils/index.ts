@@ -2,15 +2,15 @@ export { parseArguments } from './argParser.js';
 export { loadConfig } from './config-loader.js';
 export type { Config } from './config-loader.js';
 export {
-  listProjects,
-  getProject,
-  listIssues,
-  getIssue,
-  createIssue,
-  updateIssue,
+  listSpaces,
+  getSpace,
+  listPages,
+  getPage,
+  createPage,
+  updatePage,
   addComment,
-  deleteIssue,
+  deletePage,
   getUser,
   testConnection,
   clearClients,
-} from './jira-client.js';
+} from './confluence-client.js';

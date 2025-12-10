@@ -178,3 +178,20 @@ export function clearClients(): void {
     jiraUtil = null;
   }
 }
+
+/**
+ * Download attachment from an issue
+ * @param profile - Jira profile name
+ * @param issueIdOrKey - Issue ID or key containing the attachment
+ * @param attachmentId - Attachment ID to download
+ * @param outputPath - Optional file path to save attachment
+ */
+export async function downloadAttachment(
+  profile: string,
+  issueIdOrKey: string,
+  attachmentId: string,
+  outputPath?: string
+): Promise<ApiResult> {
+  const jira = await initJira();
+  return await jira.downloadAttachment(profile, issueIdOrKey, attachmentId, outputPath);
+}

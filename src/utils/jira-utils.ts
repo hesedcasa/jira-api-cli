@@ -1,5 +1,7 @@
 import { encode } from '@toon-format/toon';
+import fs from 'fs';
 import { Version3Client } from 'jira.js';
+import path from 'path';
 
 import type { Config } from './config-loader.js';
 import { getJiraClientOptions } from './config-loader.js';
@@ -377,5 +379,81 @@ export class JiraUtil {
    */
   clearClients(): void {
     this.clientPool.clear();
+  }
+
+  /**
+   * Download attachment from an issue
+   */
+  async downloadAttachment(
+    profileName: string,
+    issueIdOrKey: string,
+    attachmentId: string,
+    outputPath?: string
+  ): Promise<ApiResult> {
+    try {
+      const client = this.getClient(profileName);
+
+      // Get attachment metadata
+      const attachment = await client.issueAttachments.getAttachment({ id: attachmentId });
+
+      if (!attachment.content) {
+        return {
+          success: false,
+          error: `ERROR: Attachment ${attachmentId} has no content URL`,
+        };
+      }
+
+      // Get profile credentials for authenticated download
+      const profile = this.config.profiles[profileName];
+      if (!profile) {
+        return {
+          success: false,
+          error: `ERROR: Profile "${profileName}" not found`,
+        };
+      }
+
+      // Build Basic auth header
+      const authString = Buffer.from(`${profile.email}:${profile.apiToken}`).toString('base64');
+
+      // Download the attachment content
+      const response = await fetch(attachment.content, {
+        headers: {
+          Authorization: `Basic ${authString}`,
+        },
+      });
+
+      if (!response.ok) {
+        return {
+          success: false,
+          error: `ERROR: Failed to download attachment: ${response.status} ${response.statusText}`,
+        };
+      }
+
+      // Determine output filename
+      const filename = attachment.filename || `attachment-${attachmentId}`;
+      const finalPath = outputPath || path.join(process.cwd(), filename);
+
+      // Save to file
+      const buffer = Buffer.from(await response.arrayBuffer());
+      fs.writeFileSync(finalPath, buffer);
+
+      return {
+        success: true,
+        data: {
+          attachmentId: attachment.id,
+          filename: attachment.filename,
+          mimeType: attachment.mimeType,
+          size: attachment.size,
+          savedTo: finalPath,
+        },
+        result: `Downloaded attachment "${filename}" (${attachment.size} bytes) to ${finalPath}`,
+      };
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      return {
+        success: false,
+        error: `ERROR: ${errorMessage}`,
+      };
+    }
   }
 }

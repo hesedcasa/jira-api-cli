@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.2.0](https://github.com/hesedcasa/jira-api-cli/compare/jira-api-cli-v1.1.1...jira-api-cli-v1.2.0) (2025-12-10)
+
+
+### 🎉 Features
+
+* add download-attachment command to download files from Jira issues ([#18](https://github.com/hesedcasa/jira-api-cli/issues/18)) ([aef02fe](https://github.com/hesedcasa/jira-api-cli/commit/aef02fea6d3f40caa136c4d3bfc6886ce77ccf1e))
+
 ## [1.1.1](https://github.com/hesedcasa/jira-api-cli/compare/jira-api-cli-v1.1.0...jira-api-cli-v1.1.1) (2025-12-01)
 
 

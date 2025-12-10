@@ -15,6 +15,7 @@ A powerful command-line interface for Jira API interaction with support for issu
 - 📋 **Project operations**: list and view project details
 - 🔍 **JQL query support** for advanced issue searching
 - 👤 **User management**: retrieve user information
+- 📎 **Attachment support**: download attachments from issues
 - 📊 **Board support**: list agile boards (coming soon)
 - ✅ **Connection testing** for quick diagnostics
 
@@ -191,6 +192,18 @@ npx jira-api-cli create-issue '{"fields":{"summary":"New bug","project":{"key":"
   jira> delete-issue {"issueIdOrKey":"PROJ-123"}
   ```
 
+### Attachment Commands
+
+- **download-attachment** - Download an attachment from an issue
+
+  ```bash
+  # Download to current directory with original filename
+  jira> download-attachment '{"issueIdOrKey":"PROJ-123","attachmentId":"12345"}'
+
+  # Download to custom path
+  jira> download-attachment '{"issueIdOrKey":"PROJ-123","attachmentId":"12345","outputPath":"./images/screenshot.png"}'
+  ```
+
 ### User Commands
 
 - **get-user** - Get user information
@@ -343,6 +356,13 @@ npx jira-api-cli add-comment '{
   "issueIdOrKey": "PROJ-123",
   "body": "**Automation Update**\n\nBuild completed successfully at $(date)",
   "markdown": true
+}'
+
+# Download attachment from issue
+npx jira-api-cli download-attachment '{
+  "issueIdOrKey": "PROJ-123",
+  "attachmentId": "12345",
+  "outputPath": "./logs/error.txt"
 }'
 ```
 

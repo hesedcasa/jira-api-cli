@@ -13,4 +13,5 @@ export {
   getUser,
   testConnection,
   clearClients,
+  downloadAttachment,
 } from './jira-client.js';

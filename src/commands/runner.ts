@@ -3,6 +3,7 @@ import {
   clearClients,
   createIssue,
   deleteIssue,
+  downloadAttachment,
   getIssue,
   getProject,
   getUser,
@@ -99,6 +100,14 @@ export const runCommand = async (
 
       case 'test-connection':
         result = await testConnection(profile);
+        break;
+
+      case 'download-attachment':
+        if (!args.issueIdOrKey || !args.attachmentId) {
+          console.error('ERROR: "issueIdOrKey" and "attachmentId" parameters are required');
+          process.exit(1);
+        }
+        result = await downloadAttachment(profile, args.issueIdOrKey, args.attachmentId, args.outputPath);
         break;
 
       default:

@@ -1,3 +1,4 @@
+import fs from 'fs';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import {
@@ -5,6 +6,7 @@ import {
   clearClients,
   createIssue,
   deleteIssue,
+  downloadAttachment,
   getIssue,
   getProject,
   getUser,
@@ -115,6 +117,15 @@ vi.mock('jira.js', () => {
           displayName: 'Current User',
         },
         created: '2024-01-15T12:00:00Z',
+      }),
+    };
+    issueAttachments = {
+      getAttachment: vi.fn().mockResolvedValue({
+        id: '12345',
+        filename: 'test-document.pdf',
+        mimeType: 'application/pdf',
+        size: 1024,
+        content: 'https://example.atlassian.net/secure/attachment/12345/test-document.pdf',
       }),
     };
     users = {
@@ -396,6 +407,93 @@ describe('jira-client (integration)', () => {
     });
   });
 
+  describe('downloadAttachment', () => {
+    it('should download attachment successfully', async () => {
+      // Mock fs.writeFileSync
+      vi.spyOn(fs, 'writeFileSync').mockImplementation(() => undefined);
+
+      // Mock Buffer.from
+      const bufferFromSpy = vi.spyOn(Buffer, 'from').mockReturnValue(Buffer.from('test'));
+
+      // Mock fetch
+      global.fetch = vi.fn().mockResolvedValue({
+        ok: true,
+        arrayBuffer: vi.fn().mockResolvedValue(new ArrayBuffer(10)),
+        status: 200,
+        statusText: 'OK',
+      });
+
+      const result = await downloadAttachment('test', 'TEST-123', '12345', undefined, 'json');
+
+      expect(result.success).toBe(true);
+      expect(result.data).toHaveProperty('attachmentId', '12345');
+      expect(result.data).toHaveProperty('filename', 'test-document.pdf');
+      expect(result.data).toHaveProperty('mimeType', 'application/pdf');
+      expect(result.data).toHaveProperty('size', 1024);
+      expect(result.result).toContain('test-document.pdf');
+      expect(result.result).toContain('1024 bytes');
+
+      // Cleanup
+      vi.mocked(fs.writeFileSync).mockRestore();
+      bufferFromSpy.mockRestore();
+      vi.mocked(fetch).mockRestore();
+    });
+
+    it('should download attachment with custom output path', async () => {
+      const customPath = '/custom/path/document.pdf';
+
+      vi.spyOn(fs, 'writeFileSync').mockImplementation(() => undefined);
+      const bufferFromSpy = vi.spyOn(Buffer, 'from').mockReturnValue(Buffer.from('test'));
+      global.fetch = vi.fn().mockResolvedValue({
+        ok: true,
+        arrayBuffer: vi.fn().mockResolvedValue(new ArrayBuffer(10)),
+        status: 200,
+        statusText: 'OK',
+      });
+
+      const result = await downloadAttachment('test', 'TEST-123', '12345', customPath, 'json');
+
+      expect(result.success).toBe(true);
+      expect(result.data).toHaveProperty('savedTo', customPath);
+      expect(result.result).toContain(customPath);
+
+      // Verify writeFileSync was called with custom path
+      expect(fs.writeFileSync).toHaveBeenCalledWith(customPath, expect.any(Buffer));
+
+      // Cleanup
+      vi.mocked(fs.writeFileSync).mockRestore();
+      bufferFromSpy.mockRestore();
+      vi.mocked(fetch).mockRestore();
+    });
+
+    it('should handle failed download response', async () => {
+      vi.spyOn(fs, 'writeFileSync').mockImplementation(() => undefined);
+      const bufferFromSpy = vi.spyOn(Buffer, 'from').mockReturnValue(Buffer.from('test'));
+      global.fetch = vi.fn().mockResolvedValue({
+        ok: false,
+        status: 404,
+        statusText: 'Not Found',
+      });
+
+      const result = await downloadAttachment('test', 'TEST-123', '12345', undefined, 'json');
+
+      expect(result.success).toBe(false);
+      expect(result.error).toContain('Failed to download attachment');
+      expect(result.error).toContain('404');
+
+      vi.mocked(fs.writeFileSync).mockRestore();
+      bufferFromSpy.mockRestore();
+      vi.mocked(fetch).mockRestore();
+    });
+
+    it('should handle non-existent profile', async () => {
+      const result = await downloadAttachment('nonexistent', 'TEST-123', '12345', undefined, 'json');
+
+      expect(result.success).toBe(false);
+      expect(result.error).toContain('not found');
+    });
+  });
+
   describe('clearClients', () => {
     it('should clear all clients', () => {
       expect(() => clearClients()).not.toThrow();
@@ -433,6 +531,7 @@ describe('jira-client (integration)', () => {
       expect(typeof updateIssue).toBe('function');
       expect(typeof addComment).toBe('function');
       expect(typeof deleteIssue).toBe('function');
+      expect(typeof downloadAttachment).toBe('function');
       expect(typeof getUser).toBe('function');
       expect(typeof testConnection).toBe('function');
       expect(typeof clearClients).toBe('function');

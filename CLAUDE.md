@@ -83,7 +83,7 @@ tests/
 #### Commands Module (`src/commands/`)
 
 - `helpers.ts` - Display command information and help
-  - `printAvailableCommands()` - Lists all 11 available commands
+  - `printAvailableCommands()` - Lists all 12 available commands
   - `printCommandDetail(command)` - Shows detailed help for specific command
   - `getCurrentVersion()` - Reads version from package.json
 - `runner.ts` - Execute commands in headless mode
@@ -92,7 +92,7 @@ tests/
 #### Config Module (`src/config/`)
 
 - `constants.ts` - Centralized configuration
-  - `COMMANDS[]` - Array of 11 available Jira command names
+  - `COMMANDS[]` - Array of 12 available Jira command names
   - `COMMANDS_INFO[]` - Brief descriptions for each command
   - `COMMANDS_DETAIL[]` - Detailed parameter documentation
 
@@ -105,11 +105,11 @@ tests/
   - `getJiraClientOptions(config, profileName)` - Builds jira.js client options
   - TypeScript interfaces: `Config`, `JiraProfile`, `JiraClientOptions`
 - `jira-client.ts` - Jira API wrapper functions
-  - Exports: `listProjects()`, `getProject()`, `listIssues()`, `getIssue()`, `createIssue()`, `updateIssue()`, `addComment()`, `deleteIssue()`, `getUser()`, `testConnection()`, `clearClients()`
+  - Exports: `listProjects()`, `getProject()`, `listIssues()`, `getIssue()`, `createIssue()`, `updateIssue()`, `addComment()`, `deleteIssue()`, `downloadAttachment()`, `getUser()`, `testConnection()`, `clearClients()`
   - Manages singleton `JiraUtil` instance
 - `jira-utils.ts` - Core Jira utility class
   - `JiraUtil` class - Client pooling and API calls
-  - Implements all 11 Jira commands
+  - Implements all 12 Jira commands
   - Formats results as JSON or TOON
 
 ### Configuration System
@@ -140,7 +140,7 @@ defaultFormat: json
 
 - Custom prompt: `jira>`
 - **Special commands**: `help`, `commands`, `profiles`, `profile <name>`, `format <type>`, `clear`, `exit/quit/q`
-- **Jira commands**: 11 commands accepting JSON arguments
+- **Jira commands**: 12 commands accepting JSON arguments
   1. `list-projects` - List all accessible projects
   2. `get-project` - Get details of a specific project
   3. `list-issues` - List issues using JQL query
@@ -149,9 +149,10 @@ defaultFormat: json
   6. `update-issue` - Update an existing issue
   7. `add-comment` - Add a comment to an issue
   8. `delete-issue` - Delete an issue
-  9. `list-boards` - List agile boards
-  10. `get-user` - Get user information
-  11. `test-connection` - Test Jira API connection
+  9. `download-attachment` - Download an attachment from an issue
+  10. `list-boards` - List agile boards
+  11. `get-user` - Get user information
+  12. `test-connection` - Test Jira API connection
 
 ### TypeScript Configuration
 
@@ -162,7 +163,7 @@ defaultFormat: json
 
 ## Available Commands
 
-The CLI provides **11 Jira API commands**:
+The CLI provides **12 Jira API commands**:
 
 1. **list-projects** - List all accessible projects
 2. **get-project** - Get details of a specific project
@@ -172,9 +173,10 @@ The CLI provides **11 Jira API commands**:
 6. **update-issue** - Update an existing issue
 7. **add-comment** - Add a comment to an issue
 8. **delete-issue** - Delete an issue
-9. **list-boards** - List agile boards (experimental)
-10. **get-user** - Get user information
-11. **test-connection** - Test Jira API connection
+9. **download-attachment** - Download an attachment from an issue
+10. **list-boards** - List agile boards (experimental)
+11. **get-user** - Get user information
+12. **test-connection** - Test Jira API connection
 
 ### Command Examples
 
@@ -183,7 +185,7 @@ The CLI provides **11 Jira API commands**:
 npm start
 
 # Inside the REPL:
-jira> commands                          # List all 11 commands
+jira> commands                          # List all 12 commands
 jira> help                              # Show help
 jira> profiles                          # List available profiles
 jira> profile production                # Switch profile
@@ -192,6 +194,7 @@ jira> list-projects
 jira> get-issue '{"issueIdOrKey":"PROJ-123"}'
 jira> list-issues '{"jql":"project = PROJ AND status = Open","maxResults":10}'
 jira> add-comment '{"issueIdOrKey":"PROJ-123","body":"Great work!","markdown":true}'
+jira> download-attachment '{"issueIdOrKey":"PROJ-123","attachmentId":"12345","outputPath":"./image.png"}'
 jira> exit                              # Exit
 
 # Headless mode (one-off commands):

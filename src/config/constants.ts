@@ -17,6 +17,7 @@ export const COMMANDS: string[] = [
   'list-boards',
   'get-user',
   'test-connection',
+  'download-attachment',
 ];
 
 /**
@@ -34,6 +35,7 @@ export const COMMANDS_INFO: string[] = [
   'List agile boards',
   'Get user information',
   'Test Jira API connection',
+  'Download attachment from an issue',
 ];
 
 /**
@@ -135,4 +137,13 @@ Parameters:
 
 Example:
 test-connection '{"profile":"cloud"}'`,
+  `
+Parameters:
+- issueIdOrKey (required): string - Issue ID or key containing the attachment
+- attachmentId (required): string - Attachment ID to download
+- outputPath (optional): string - File path to save attachment (default: current directory with original filename)
+- profile (optional): string - Jira profile name (default: configured default profile)
+
+Example:
+download-attachment '{"issueIdOrKey":"PROJ-123","attachmentId":"12345","outputPath":"./image.png"}'`,
 ];

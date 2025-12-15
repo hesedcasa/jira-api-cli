@@ -38,7 +38,7 @@
   "devDependencies": {
     "@eslint/js": "^9.39.1",
     "@trivago/prettier-plugin-sort-imports": "^6.0.0",
-    "@types/node": "^24.10.1",
+    "@types/node": "^25.0.2",
     "@vitest/coverage-v8": "^4.0.9",
     "@vitest/ui": "^4.0.9",
     "eslint": "^9.39.1",

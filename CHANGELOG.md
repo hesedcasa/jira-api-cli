@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.4.0](https://github.com/hesedcasa/jira-api-cli/compare/jira-api-cli-v1.3.0...jira-api-cli-v1.4.0) (2025-12-17)
+
+
+### 🎉 Features
+
+* add markdown support for create and update issue ([#25](https://github.com/hesedcasa/jira-api-cli/issues/25)) ([5b440f5](https://github.com/hesedcasa/jira-api-cli/commit/5b440f52960e6b9a976278e5e5c5e4425568db36))
+
 ## [1.3.0](https://github.com/hesedcasa/jira-api-cli/compare/jira-api-cli-v1.2.0...jira-api-cli-v1.3.0) (2025-12-17)
 
 

@@ -67,7 +67,7 @@ export const runCommand = async (
           console.error('ERROR: "fields" parameter is required');
           process.exit(1);
         }
-        result = await createIssue(profile, args.fields, format);
+        result = await createIssue(profile, args.fields, args.markdown || false, format);
         break;
 
       case 'update-issue':
@@ -75,7 +75,7 @@ export const runCommand = async (
           console.error('ERROR: "issueIdOrKey" and "fields" parameters are required');
           process.exit(1);
         }
-        result = await updateIssue(profile, args.issueIdOrKey, args.fields);
+        result = await updateIssue(profile, args.issueIdOrKey, args.fields, args.markdown || false, format);
         break;
 
       case 'add-comment':

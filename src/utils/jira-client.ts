@@ -88,15 +88,17 @@ export async function getIssue(
  * Create a new issue
  * @param profile - Jira profile name
  * @param fields - Issue fields
+ * @param markdown - Whether to parse description as markdown (default: false)
  * @param format - Output format (json, toon)
  */
 export async function createIssue(
   profile: string,
   fields: Record<string, unknown>,
+  markdown = false,
   format: 'json' | 'toon' = 'json'
 ): Promise<ApiResult> {
   const jira = await initJira();
-  return await jira.createIssue(profile, fields, format);
+  return await jira.createIssue(profile, fields, markdown, format);
 }
 
 /**
@@ -104,14 +106,17 @@ export async function createIssue(
  * @param profile - Jira profile name
  * @param issueIdOrKey - Issue ID or key
  * @param fields - Issue fields to update
+ * @param markdown - Whether to parse description as markdown (default: false)
+ * @param format - Output format (json, toon)
  */
 export async function updateIssue(
   profile: string,
   issueIdOrKey: string,
-  fields: Record<string, unknown>
+  fields: Record<string, unknown>,
+  markdown = false
 ): Promise<ApiResult> {
   const jira = await initJira();
-  return await jira.updateIssue(profile, issueIdOrKey, fields);
+  return await jira.updateIssue(profile, issueIdOrKey, fields, markdown);
 }
 
 /**

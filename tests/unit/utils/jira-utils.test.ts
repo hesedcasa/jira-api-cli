@@ -371,7 +371,6 @@ describe('JiraUtil', () => {
 
       expect(result.success).toBe(true);
       expect(result.result).toContain('PROJ-123');
-      expect(result.data).toHaveProperty('key', 'PROJ-123');
     });
 
     it('updateIssue should return success message', async () => {

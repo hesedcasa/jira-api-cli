@@ -198,17 +198,24 @@ export class JiraUtil {
   async createIssue(
     profileName: string,
     fields: Record<string, unknown>,
+    markdown = false,
     format: 'json' | 'toon' = 'json'
   ): Promise<ApiResult> {
     try {
       const client = this.getClient(profileName);
+
+      // Convert description to ADF format if markdown is enabled
+      const processedFields = { ...fields };
+      if (markdown && typeof fields.description === 'string') {
+        processedFields.description = markdownToAdf(fields.description);
+      }
+
       const response = await client.issues.createIssue({
-        fields: fields as Parameters<typeof client.issues.createIssue>[0]['fields'],
+        fields: processedFields as Parameters<typeof client.issues.createIssue>[0]['fields'],
       });
 
       return {
         success: true,
-        data: response,
         result: this.formatResult(response, format),
       };
     } catch (error: unknown) {
@@ -223,12 +230,24 @@ export class JiraUtil {
   /**
    * Update an existing issue
    */
-  async updateIssue(profileName: string, issueIdOrKey: string, fields: Record<string, unknown>): Promise<ApiResult> {
+  async updateIssue(
+    profileName: string,
+    issueIdOrKey: string,
+    fields: Record<string, unknown>,
+    markdown = false
+  ): Promise<ApiResult> {
     try {
       const client = this.getClient(profileName);
+
+      // Convert description to ADF format if markdown is enabled
+      const processedFields = { ...fields };
+      if (markdown && typeof fields.description === 'string') {
+        processedFields.description = markdownToAdf(fields.description);
+      }
+
       await client.issues.editIssue({
         issueIdOrKey,
-        fields: fields as Parameters<typeof client.issues.editIssue>[0]['fields'],
+        fields: processedFields as Parameters<typeof client.issues.editIssue>[0]['fields'],
       });
 
       return {

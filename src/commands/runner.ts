@@ -75,7 +75,7 @@ export const runCommand = async (
           console.error('ERROR: "issueIdOrKey" and "fields" parameters are required');
           process.exit(1);
         }
-        result = await updateIssue(profile, args.issueIdOrKey, args.fields, args.markdown || false, format);
+        result = await updateIssue(profile, args.issueIdOrKey, args.fields, args.markdown || false);
         break;
 
       case 'add-comment':

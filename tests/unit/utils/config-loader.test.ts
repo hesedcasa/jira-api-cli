@@ -40,7 +40,7 @@ defaultFormat: json
 # Jira Connection Profiles
 `;
 
-      const configPath = path.join(testDir, '.claude', 'jira-connector.local.md');
+      const configPath = path.join(testDir, '.claude', 'atlassian-config.local.md');
       fs.writeFileSync(configPath, configContent);
 
       const config = loadConfig(testDir);
@@ -68,7 +68,7 @@ defaultFormat: json
 This is just markdown content without frontmatter.
 `;
 
-      const configPath = path.join(testDir, '.claude', 'jira-connector.local.md');
+      const configPath = path.join(testDir, '.claude', 'atlassian-config.local.md');
       fs.writeFileSync(configPath, configContent);
 
       expect(() => loadConfig(testDir)).toThrow('Invalid configuration file format');
@@ -80,7 +80,7 @@ defaultProfile: cloud
 ---
 `;
 
-      const configPath = path.join(testDir, '.claude', 'jira-connector.local.md');
+      const configPath = path.join(testDir, '.claude', 'atlassian-config.local.md');
       fs.writeFileSync(configPath, configContent);
 
       expect(() => loadConfig(testDir)).toThrow('Configuration must include "profiles" object');
@@ -96,7 +96,7 @@ profiles:
 ---
 `;
 
-      const configPath = path.join(testDir, '.claude', 'jira-connector.local.md');
+      const configPath = path.join(testDir, '.claude', 'atlassian-config.local.md');
       fs.writeFileSync(configPath, configContent);
 
       expect(() => loadConfig(testDir)).toThrow('missing required field');
@@ -112,7 +112,7 @@ profiles:
 ---
 `;
 
-      const configPath = path.join(testDir, '.claude', 'jira-connector.local.md');
+      const configPath = path.join(testDir, '.claude', 'atlassian-config.local.md');
       fs.writeFileSync(configPath, configContent);
 
       expect(() => loadConfig(testDir)).toThrow('host must start with http:// or https://');
@@ -128,7 +128,7 @@ profiles:
 ---
 `;
 
-      const configPath = path.join(testDir, '.claude', 'jira-connector.local.md');
+      const configPath = path.join(testDir, '.claude', 'atlassian-config.local.md');
       fs.writeFileSync(configPath, configContent);
 
       expect(() => loadConfig(testDir)).toThrow('email appears to be invalid');
@@ -148,7 +148,7 @@ profiles:
 ---
 `;
 
-      const configPath = path.join(testDir, '.claude', 'jira-connector.local.md');
+      const configPath = path.join(testDir, '.claude', 'atlassian-config.local.md');
       fs.writeFileSync(configPath, configContent);
 
       const config = loadConfig(testDir);
@@ -166,7 +166,7 @@ profiles:
 ---
 `;
 
-      const configPath = path.join(testDir, '.claude', 'jira-connector.local.md');
+      const configPath = path.join(testDir, '.claude', 'atlassian-config.local.md');
       fs.writeFileSync(configPath, configContent);
 
       const config = loadConfig(testDir);
@@ -188,7 +188,7 @@ defaultFormat: ${format}
 ---
 `;
 
-        const configPath = path.join(testDir, '.claude', 'jira-connector.local.md');
+        const configPath = path.join(testDir, '.claude', 'atlassian-config.local.md');
         fs.writeFileSync(configPath, configContent);
 
         const config = loadConfig(testDir);
@@ -206,7 +206,7 @@ profiles:
 ---
 `;
 
-      const configPath = path.join(testDir, '.claude', 'jira-connector.local.md');
+      const configPath = path.join(testDir, '.claude', 'atlassian-config.local.md');
       fs.writeFileSync(configPath, configContent);
 
       const config = loadConfig(testDir);
@@ -232,7 +232,7 @@ profiles:
 ---
 `;
 
-      const configPath = path.join(testDir, '.claude', 'jira-connector.local.md');
+      const configPath = path.join(testDir, '.claude', 'atlassian-config.local.md');
       fs.writeFileSync(configPath, configContent);
 
       config = loadConfig(testDir);

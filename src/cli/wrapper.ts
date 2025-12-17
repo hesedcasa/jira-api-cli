@@ -51,7 +51,7 @@ export class wrapper {
       const errorMessage = error instanceof Error ? error.message : String(error);
       console.error('Failed to load configuration:', errorMessage);
       console.error('\nMake sure:');
-      console.error('1. .claude/jira-connector.local.md exists');
+      console.error('1. .claude/atlassian-config.local.md exists');
       console.error('2. The file contains valid Jira profiles in YAML frontmatter');
       process.exit(1);
     }

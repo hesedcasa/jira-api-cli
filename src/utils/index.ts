@@ -1,4 +1,4 @@
-export { parseArguments } from './argParser.js';
+export { parseArguments } from './arg-parser.js';
 export { loadConfig } from './config-loader.js';
 export type { Config } from './config-loader.js';
 export {

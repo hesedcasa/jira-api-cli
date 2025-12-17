@@ -50,7 +50,7 @@ src/
 │   └── constants.ts (122 lines)           # Command definitions
 └── utils/
     ├── index.ts                           # Barrel export
-    ├── argParser.ts (74 lines)            # Command-line argument parser
+    ├── arg-parser.ts (74 lines)            # Command-line argument parser
     ├── config-loader.ts (120 lines)       # YAML config file loader
     ├── jira-client.ts (167 lines)         # Jira API wrapper functions
     └── jira-utils.ts (433 lines)          # Core Jira utility class
@@ -74,7 +74,7 @@ tests/
 #### CLI Module (`src/cli/`)
 
 - **wrapper class**: Main orchestrator managing:
-  - `connect()` - Loads configuration from `.claude/jira-connector.local.md`
+  - `connect()` - Loads configuration from `.claude/atlassian-config.local.md`
   - `start()` - Initiates interactive REPL with readline interface
   - `handleCommand()` - Parses and processes user commands
   - `runCommand()` - Executes Jira commands with result formatting
@@ -98,10 +98,10 @@ tests/
 
 #### Utils Module (`src/utils/`)
 
-- `argParser.ts` - Command-line argument handling
+- `arg-parser.ts` - Command-line argument handling
   - `parseArguments(args)` - Parses CLI flags and routes execution
 - `config-loader.ts` - Configuration file management
-  - `loadConfig(projectRoot)` - Loads `.claude/jira-connector.local.md`
+  - `loadConfig(projectRoot)` - Loads `.claude/atlassian-config.local.md`
   - `getJiraClientOptions(config, profileName)` - Builds jira.js client options
   - TypeScript interfaces: `Config`, `JiraProfile`, `JiraClientOptions`
 - `jira-client.ts` - Jira API wrapper functions
@@ -114,7 +114,7 @@ tests/
 
 ### Configuration System
 
-The CLI loads Jira profiles from `.claude/jira-connector.local.md` with YAML frontmatter:
+The CLI loads Jira profiles from `.claude/atlassian-config.local.md` with YAML frontmatter:
 
 ```yaml
 ---
@@ -243,7 +243,7 @@ npx jira-api-cli --version         # Show version
 
 ### Config Loader (`utils/config-loader.ts`)
 
-- Reads and parses `.claude/jira-connector.local.md`
+- Reads and parses `.claude/atlassian-config.local.md`
 - Extracts YAML frontmatter with Jira profiles
 - Validates required fields for each profile
 - Provides default values for settings
@@ -263,7 +263,7 @@ npx jira-api-cli --version         # Show version
 - Result formatting (JSON, TOON)
 - All 10 command implementations
 
-### Argument Parser (`utils/argParser.ts`)
+### Argument Parser (`utils/arg-parser.ts`)
 
 - CLI flag parsing (--help, --version, --commands, etc.)
 - Routing logic for different execution modes
@@ -277,7 +277,7 @@ npx jira-api-cli --version         # Show version
 - **Client Pooling**: Reuses Jira clients per profile for efficiency
 - **Signal Handling**: Graceful shutdown on Ctrl+C (SIGINT) and SIGTERM
 - **Error Handling**: Try-catch blocks with user-friendly error messages
-- **Configuration**: YAML frontmatter in `.claude/jira-connector.local.md`
+- **Configuration**: YAML frontmatter in `.claude/atlassian-config.local.md`
 
 ## Dependencies
 
@@ -333,7 +333,7 @@ tests/
 
 ## Important Notes
 
-1. **Configuration Required**: CLI requires `.claude/jira-connector.local.md` with valid Jira profiles
+1. **Configuration Required**: CLI requires `.claude/atlassian-config.local.md` with valid Jira profiles
 2. **ES2022 Modules**: Project uses `"type": "module"` - no CommonJS
 3. **API Authentication**: Uses Jira API tokens with basic authentication
 4. **Multi-Profile**: Supports multiple Jira instances (cloud, staging, etc.)

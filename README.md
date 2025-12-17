@@ -42,7 +42,7 @@ npm install -g jira-api-cli
 
 ### Step 2: Create Configuration File
 
-Create a configuration file at `.claude/jira-connector.local.md` in your project root:
+Create a configuration file at `.claude/atlassian-config.local.md` in your project root:
 
 ```markdown
 ---
@@ -263,7 +263,7 @@ jira> list-issues
 
 ⚠️ **Important Security Notes:**
 
-1. **Never commit** `.claude/jira-connector.local.md` to version control
+1. **Never commit** `.claude/atlassian-config.local.md` to version control
 2. Add `*.local.md` to your `.gitignore`
 3. Keep your API tokens secure and rotate them periodically
 4. Use different API tokens for different environments

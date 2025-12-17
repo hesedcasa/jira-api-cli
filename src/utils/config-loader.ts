@@ -34,18 +34,18 @@ interface JiraClientOptions {
 }
 
 /**
- * Load Jira connection profiles from .claude/jira-connector.local.md
+ * Load Jira connection profiles from .claude/atlassian-config.local.md
  *
  * @param projectRoot - Project root directory
  * @returns Configuration object with profiles and settings
  */
 export function loadConfig(projectRoot: string): Config {
-  const configPath = path.join(projectRoot, '.claude', 'jira-connector.local.md');
+  const configPath = path.join(projectRoot, '.claude', 'atlassian-config.local.md');
 
   if (!fs.existsSync(configPath)) {
     throw new Error(
       `Configuration file not found at ${configPath}\n` +
-        `Please create .claude/jira-connector.local.md with your Jira profiles.`
+        `Please create .claude/atlassian-config.local.md with your Jira profiles.`
     );
   }
 

@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.3.0](https://github.com/hesedcasa/jira-api-cli/compare/jira-api-cli-v1.2.0...jira-api-cli-v1.3.0) (2025-12-17)
+
+
+### 🎉 Features
+
+* rename config file and update document ([271e9fc](https://github.com/hesedcasa/jira-api-cli/commit/271e9fc55f38484e1abf2e4de0a9f0a21dcb63c6))
+
 ## [1.2.0](https://github.com/hesedcasa/jira-api-cli/compare/jira-api-cli-v1.1.1...jira-api-cli-v1.2.0) (2025-12-10)
 
 

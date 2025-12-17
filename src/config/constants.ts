@@ -78,27 +78,36 @@ get-issue '{"issueIdOrKey":"PROJ-123","profile":"cloud","format":"json"}'`,
   `
 Parameters:
 - fields (required): object - Issue fields including summary, project, issuetype, etc.
+- markdown (optional): boolean - Parse description field as markdown (default: false)
 - profile (optional): string - Jira profile name (default: configured default profile)
 - format (optional): string - Output format: json or toon (default: json)
 
-Example:
-create-issue '{"fields":{"summary":"New issue","project":{"key":"PROJ"},"issuetype":{"name":"Task"}},"profile":"cloud","format":"json"}'`,
+Examples:
+Plain text:
+create-issue '{"fields":{"summary":"New issue","project":{"key":"PROJ"},"issuetype":{"name":"Task"},"description":"Plain text description"},"profile":"cloud","format":"json"}'
+
+Markdown:
+create-issue '{"fields":{"summary":"New issue","project":{"key":"PROJ"},"issuetype":{"name":"Task"},"description":"This is **bold** and *italic*\\n\\n- Item 1\\n- Item 2"},"markdown":true,"profile":"cloud","format":"json"}'`,
   `
 Parameters:
 - issueIdOrKey (required): string - Issue ID or issue key to update
 - fields (required): object - Issue fields to update
+- markdown (optional): boolean - Parse description field as markdown (default: false)
 - profile (optional): string - Jira profile name (default: configured default profile)
 - format (optional): string - Output format: json or toon (default: json)
 
-Example:
-update-issue '{"issueIdOrKey":"PROJ-123","fields":{"summary":"Updated summary"},"profile":"cloud","format":"json"}'`,
+Examples:
+Plain text:
+update-issue '{"issueIdOrKey":"PROJ-123","fields":{"summary":"Updated summary","description":"Updated description"},"profile":"cloud","format":"json"}'
+
+Markdown:
+update-issue '{"issueIdOrKey":"PROJ-123","fields":{"summary":"Updated summary","description":"This is **bold** text\\n\\n- Item 1\\n- Item 2"},"markdown":true,"profile":"cloud","format":"json"}'`,
   `
 Parameters:
 - issueIdOrKey (required): string - Issue ID or issue key to add comment to
 - body (required): string - Comment text content
 - markdown (optional): boolean - Parse body as markdown (default: false)
 - profile (optional): string - Jira profile name (default: configured default profile)
-- format (optional): string - Output format: json or toon (default: json)
 
 Examples:
 Plain text:

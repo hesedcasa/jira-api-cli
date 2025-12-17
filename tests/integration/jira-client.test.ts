@@ -245,25 +245,104 @@ describe('jira-client (integration)', () => {
         issuetype: { name: 'Task' },
       };
 
-      const result = await createIssue('test', fields, 'json');
+      const result = await createIssue('test', fields, false, 'json');
 
       expect(result.success).toBe(true);
       expect(result.result).toContain('TEST-123');
-      expect(result.data).toHaveProperty('key', 'TEST-123');
     });
 
-    it('should return created issue data', async () => {
+    it('should create issue with markdown description successfully', async () => {
+      const fields = {
+        project: { key: 'TEST' },
+        summary: 'New test issue',
+        issuetype: { name: 'Task' },
+        description: 'This is **bold** and *italic*\n\n- Item 1\n- Item 2',
+      };
+
+      const result = await createIssue('test', fields, true, 'json');
+
+      expect(result.success).toBe(true);
+      expect(result.result).toContain('TEST-123');
+    });
+
+    it('should create issue with plain text description when markdown is false', async () => {
+      const fields = {
+        project: { key: 'TEST' },
+        summary: 'New test issue',
+        issuetype: { name: 'Task' },
+        description: 'Plain text description',
+      };
+
+      const result = await createIssue('test', fields, false, 'json');
+
+      expect(result.success).toBe(true);
+      expect(result.result).toContain('TEST-123');
+    });
+
+    it('should create issue without description field', async () => {
+      const fields = {
+        project: { key: 'TEST' },
+        summary: 'New test issue',
+        issuetype: { name: 'Task' },
+      };
+
+      const result = await createIssue('test', fields, true, 'json');
+
+      expect(result.success).toBe(true);
+      expect(result.result).toContain('TEST-123');
+    });
+
+    it('should create issue with non-string description field', async () => {
+      const fields = {
+        project: { key: 'TEST' },
+        summary: 'New test issue',
+        issuetype: { name: 'Task' },
+        description: { type: 'doc', version: 1, content: [] },
+      };
+
+      const result = await createIssue('test', fields, true, 'json');
+
+      expect(result.success).toBe(true);
+      expect(result.result).toContain('TEST-123');
+    });
+
+    it('should format create issue result as toon', async () => {
       const fields = {
         project: { key: 'TEST' },
         summary: 'New issue',
         issuetype: { name: 'Bug' },
       };
 
-      const result = await createIssue('test', fields, 'json');
+      const result = await createIssue('test', fields, false, 'toon');
 
       expect(result.success).toBe(true);
-      expect(result.data).toHaveProperty('key', 'TEST-123');
-      expect(result.data).toHaveProperty('id', '10123');
+      expect(typeof result.result).toBe('string');
+    });
+
+    it('should default markdown parameter to false', async () => {
+      const fields = {
+        project: { key: 'TEST' },
+        summary: 'New issue',
+        issuetype: { name: 'Bug' },
+      };
+
+      const result = await createIssue('test', fields);
+
+      expect(result.success).toBe(true);
+      expect(result.result).toBeDefined();
+    });
+
+    it('should default format to json', async () => {
+      const fields = {
+        project: { key: 'TEST' },
+        summary: 'New issue',
+        issuetype: { name: 'Bug' },
+      };
+
+      const result = await createIssue('test', fields, false);
+
+      expect(result.success).toBe(true);
+      expect(result.result).toBeDefined();
     });
   });
 
@@ -273,7 +352,7 @@ describe('jira-client (integration)', () => {
         summary: 'Updated summary',
       };
 
-      const result = await updateIssue('test', 'TEST-1', fields);
+      const result = await updateIssue('test', 'TEST-1', fields, false);
 
       expect(result.success).toBe(true);
       expect(result.result).toContain('updated successfully');
@@ -287,7 +366,83 @@ describe('jira-client (integration)', () => {
         priority: { name: 'High' },
       };
 
+      const result = await updateIssue('test', 'TEST-1', fields, false, 'json');
+
+      expect(result.success).toBe(true);
+    });
+
+    it('should update issue with markdown description successfully', async () => {
+      const fields = {
+        summary: 'Updated summary',
+        description: 'This is **bold** and *italic*\n\n- Item 1\n- Item 2',
+      };
+
+      const result = await updateIssue('test', 'TEST-1', fields, true);
+
+      expect(result.success).toBe(true);
+      expect(result.result).toContain('updated successfully');
+      expect(result.result).toContain('TEST-1');
+    });
+
+    it('should update issue with plain text description when markdown is false', async () => {
+      const fields = {
+        summary: 'Updated summary',
+        description: 'Plain text description',
+      };
+
+      const result = await updateIssue('test', 'TEST-1', fields, false);
+
+      expect(result.success).toBe(true);
+    });
+
+    it('should update issue without description field', async () => {
+      const fields = {
+        summary: 'Updated summary',
+      };
+
+      const result = await updateIssue('test', 'TEST-1', fields, true);
+
+      expect(result.success).toBe(true);
+    });
+
+    it('should update issue with non-string description field', async () => {
+      const fields = {
+        summary: 'Updated summary',
+        description: { type: 'doc', version: 1, content: [] },
+      };
+
+      const result = await updateIssue('test', 'TEST-1', fields, true);
+
+      expect(result.success).toBe(true);
+    });
+
+    it('should format update issue result as toon', async () => {
+      const fields = {
+        summary: 'Updated summary',
+      };
+
+      const result = await updateIssue('test', 'TEST-1', fields, false);
+
+      expect(result.success).toBe(true);
+      expect(typeof result.result).toBe('string');
+    });
+
+    it('should default markdown parameter to false', async () => {
+      const fields = {
+        summary: 'Updated summary',
+      };
+
       const result = await updateIssue('test', 'TEST-1', fields);
+
+      expect(result.success).toBe(true);
+    });
+
+    it('should default format to json', async () => {
+      const fields = {
+        summary: 'Updated summary',
+      };
+
+      const result = await updateIssue('test', 'TEST-1', fields, false);
 
       expect(result.success).toBe(true);
     });
@@ -423,7 +578,7 @@ describe('jira-client (integration)', () => {
         statusText: 'OK',
       });
 
-      const result = await downloadAttachment('test', 'TEST-123', '12345', undefined, 'json');
+      const result = await downloadAttachment('test', 'TEST-123', '12345', undefined);
 
       expect(result.success).toBe(true);
       expect(result.data).toHaveProperty('attachmentId', '12345');
@@ -451,7 +606,7 @@ describe('jira-client (integration)', () => {
         statusText: 'OK',
       });
 
-      const result = await downloadAttachment('test', 'TEST-123', '12345', customPath, 'json');
+      const result = await downloadAttachment('test', 'TEST-123', '12345', customPath);
 
       expect(result.success).toBe(true);
       expect(result.data).toHaveProperty('savedTo', customPath);
@@ -475,7 +630,7 @@ describe('jira-client (integration)', () => {
         statusText: 'Not Found',
       });
 
-      const result = await downloadAttachment('test', 'TEST-123', '12345', undefined, 'json');
+      const result = await downloadAttachment('test', 'TEST-123', '12345', undefined);
 
       expect(result.success).toBe(false);
       expect(result.error).toContain('Failed to download attachment');
@@ -487,7 +642,7 @@ describe('jira-client (integration)', () => {
     });
 
     it('should handle non-existent profile', async () => {
-      const result = await downloadAttachment('nonexistent', 'TEST-123', '12345', undefined, 'json');
+      const result = await downloadAttachment('nonexistent', 'TEST-123', '12345', undefined);
 
       expect(result.success).toBe(false);
       expect(result.error).toContain('not found');

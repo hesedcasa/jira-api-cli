@@ -5,8 +5,6 @@ import { loadConfig } from './config-loader.js';
 import type { ApiResult } from './jira-utils.js';
 import { JiraUtil } from './jira-utils.js';
 
-const projectRoot = process.env.CLAUDE_PROJECT_ROOT || process.cwd();
-
 let jiraUtil: JiraUtil | null = null;
 
 /**
@@ -16,7 +14,7 @@ async function initJira(): Promise<JiraUtil> {
   if (jiraUtil) return jiraUtil;
 
   try {
-    const config = loadConfig(projectRoot);
+    const config = loadConfig();
     jiraUtil = new JiraUtil(config);
     return jiraUtil;
   } catch (error: unknown) {
@@ -27,155 +25,133 @@ async function initJira(): Promise<JiraUtil> {
 
 /**
  * List all projects
- * @param profile - Jira profile name
  * @param format - Output format (json, toon)
  */
-export async function listProjects(profile: string, format: 'json' | 'toon' = 'json'): Promise<ApiResult> {
+export async function listProjects(format: 'json' | 'toon' = 'json'): Promise<ApiResult> {
   const jira = await initJira();
-  return await jira.listProjects(profile, format);
+  return await jira.listProjects(format);
 }
 
 /**
  * Get project details
- * @param profile - Jira profile name
  * @param projectIdOrKey - Project ID or key
  * @param format - Output format (json, toon)
  */
-export async function getProject(
-  profile: string,
-  projectIdOrKey: string,
-  format: 'json' | 'toon' = 'json'
-): Promise<ApiResult> {
+export async function getProject(projectIdOrKey: string, format: 'json' | 'toon' = 'json'): Promise<ApiResult> {
   const jira = await initJira();
-  return await jira.getProject(profile, projectIdOrKey, format);
+  return await jira.getProject(projectIdOrKey, format);
 }
 
 /**
  * List issues using JQL
- * @param profile - Jira profile name
  * @param jql - JQL query string
  * @param maxResults - Maximum number of results
- * @param startAt - Starting index for pagination
+ * @param startAt - Starting index
  * @param format - Output format (json, toon)
  */
 export async function listIssues(
-  profile: string,
   jql?: string,
   maxResults = 50,
   startAt = 0,
   format: 'json' | 'toon' = 'json'
 ): Promise<ApiResult> {
   const jira = await initJira();
-  return await jira.listIssues(profile, jql, maxResults, startAt, format);
+  return await jira.listIssues(jql, maxResults, startAt, format);
 }
 
 /**
  * Get issue details
- * @param profile - Jira profile name
  * @param issueIdOrKey - Issue ID or key
  * @param format - Output format (json, toon)
  */
-export async function getIssue(
-  profile: string,
-  issueIdOrKey: string,
-  format: 'json' | 'toon' = 'json'
-): Promise<ApiResult> {
+export async function getIssue(issueIdOrKey: string, format: 'json' | 'toon' = 'json'): Promise<ApiResult> {
   const jira = await initJira();
-  return await jira.getIssue(profile, issueIdOrKey, format);
+  return await jira.getIssue(issueIdOrKey, format);
 }
 
 /**
  * Create a new issue
- * @param profile - Jira profile name
  * @param fields - Issue fields
- * @param markdown - Whether to parse description as markdown (default: false)
+ * @param markdown - Whether to convert markdown to ADF
  * @param format - Output format (json, toon)
  */
 export async function createIssue(
-  profile: string,
   fields: Record<string, unknown>,
   markdown = false,
   format: 'json' | 'toon' = 'json'
 ): Promise<ApiResult> {
   const jira = await initJira();
-  return await jira.createIssue(profile, fields, markdown, format);
+  return await jira.createIssue(fields, markdown, format);
 }
 
 /**
  * Update an existing issue
- * @param profile - Jira profile name
  * @param issueIdOrKey - Issue ID or key
  * @param fields - Issue fields to update
- * @param markdown - Whether to parse description as markdown (default: false)
- * @param format - Output format (json, toon)
+ * @param markdown - Whether to convert markdown to ADF
+ * @returns ApiResult with success message (note: update operations don't return formatted data, unlike query operations)
  */
 export async function updateIssue(
-  profile: string,
   issueIdOrKey: string,
   fields: Record<string, unknown>,
   markdown = false
 ): Promise<ApiResult> {
   const jira = await initJira();
-  return await jira.updateIssue(profile, issueIdOrKey, fields, markdown);
+  return await jira.updateIssue(issueIdOrKey, fields, markdown);
 }
 
 /**
  * Add a comment to an issue
- * @param profile - Jira profile name
  * @param issueIdOrKey - Issue ID or key
- * @param body - Comment text content
- * @param markdown - Whether to parse body as markdown (default: false)
+ * @param body - Comment body
+ * @param markdown - Whether to convert markdown to ADF
  * @param format - Output format (json, toon)
  */
 export async function addComment(
-  profile: string,
   issueIdOrKey: string,
   body: string,
   markdown = false,
   format: 'json' | 'toon' = 'json'
 ): Promise<ApiResult> {
   const jira = await initJira();
-  return await jira.addComment(profile, issueIdOrKey, body, markdown, format);
+  return await jira.addComment(issueIdOrKey, body, markdown, format);
 }
 
 /**
  * Delete an issue
- * @param profile - Jira profile name
  * @param issueIdOrKey - Issue ID or key
+ * @returns ApiResult with success message (note: delete operations don't return formatted data, unlike query operations)
  */
-export async function deleteIssue(profile: string, issueIdOrKey: string): Promise<ApiResult> {
+export async function deleteIssue(issueIdOrKey: string): Promise<ApiResult> {
   const jira = await initJira();
-  return await jira.deleteIssue(profile, issueIdOrKey);
+  return await jira.deleteIssue(issueIdOrKey);
 }
 
 /**
  * Get user information
- * @param profile - Jira profile name
  * @param accountId - User account ID
- * @param username - Username (deprecated)
+ * @param username - Username (deprecated, use accountId)
  * @param format - Output format (json, toon)
  */
 export async function getUser(
-  profile: string,
   accountId?: string,
   username?: string,
   format: 'json' | 'toon' = 'json'
 ): Promise<ApiResult> {
   const jira = await initJira();
-  return await jira.getUser(profile, accountId, username, format);
+  return await jira.getUser(accountId, username, format);
 }
 
 /**
  * Test Jira API connection
- * @param profile - Jira profile name
  */
-export async function testConnection(profile: string): Promise<ApiResult> {
+export async function testConnection(): Promise<ApiResult> {
   const jira = await initJira();
-  return await jira.testConnection(profile);
+  return await jira.testConnection();
 }
 
 /**
- * Clear Jira client pool (for cleanup)
+ * Clear clients (for cleanup)
  */
 export function clearClients(): void {
   if (jiraUtil) {
@@ -186,17 +162,15 @@ export function clearClients(): void {
 
 /**
  * Download attachment from an issue
- * @param profile - Jira profile name
- * @param issueIdOrKey - Issue ID or key containing the attachment
- * @param attachmentId - Attachment ID to download
- * @param outputPath - Optional file path to save attachment
+ * @param issueIdOrKey - Issue ID or key
+ * @param attachmentId - Attachment ID
+ * @param outputPath - Output file path (optional)
  */
 export async function downloadAttachment(
-  profile: string,
   issueIdOrKey: string,
   attachmentId: string,
   outputPath?: string
 ): Promise<ApiResult> {
   const jira = await initJira();
-  return await jira.downloadAttachment(profile, issueIdOrKey, attachmentId, outputPath);
+  return await jira.downloadAttachment(issueIdOrKey, attachmentId, outputPath);
 }

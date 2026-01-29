@@ -27,6 +27,13 @@ npm run test:coverage       # Run tests with coverage report
 npm run format              # Format code with ESLint and Prettier
 npm run find-deadcode       # Find unused exports with ts-prune
 npm run pre-commit          # Run format + find-deadcode
+
+# Run single test file (pattern match)
+npx vitest run jira-utils
+npx vitest run -t "test name"
+
+# Interactive configuration setup
+bbk-cli config              # Setup or update configuration
 ```
 
 ## Project Architecture
@@ -74,7 +81,7 @@ tests/
 #### CLI Module (`src/cli/`)
 
 - **wrapper class**: Main orchestrator managing:
-  - `connect()` - Loads configuration from `.claude/atlassian-config.local.md`
+  - `connect()` - Loads configuration from `~/.jiracli`
   - `start()` - Initiates interactive REPL with readline interface
   - `handleCommand()` - Parses and processes user commands
   - `runCommand()` - Executes Jira commands with result formatting
@@ -101,9 +108,10 @@ tests/
 - `arg-parser.ts` - Command-line argument handling
   - `parseArguments(args)` - Parses CLI flags and routes execution
 - `config-loader.ts` - Configuration file management
-  - `loadConfig(projectRoot)` - Loads `.claude/atlassian-config.local.md`
-  - `getJiraClientOptions(config, profileName)` - Builds jira.js client options
-  - TypeScript interfaces: `Config`, `JiraProfile`, `JiraClientOptions`
+  - `loadConfig()` - Loads `~/.jiracli` INI-style config file
+  - `setupConfig()` - Interactive configuration setup wizard
+  - `getJiraClientOptions(config)` - Builds jira.js client options
+  - TypeScript interfaces: `Config`, `JiraClientOptions`
 - `jira-client.ts` - Jira API wrapper functions
   - Exports: `listProjects()`, `getProject()`, `listIssues()`, `getIssue()`, `createIssue()`, `updateIssue()`, `addComment()`, `deleteIssue()`, `downloadAttachment()`, `getUser()`, `testConnection()`, `clearClients()`
   - Manages singleton `JiraUtil` instance
@@ -114,33 +122,31 @@ tests/
 
 ### Configuration System
 
-The CLI loads Jira profiles from `.claude/atlassian-config.local.md` with YAML frontmatter:
+The CLI loads Jira connection settings from `~/.jiracli` with INI-like format:
 
-```yaml
----
-profiles:
-  cloud:
-    host: https://your-domain.atlassian.net
-    email: your-email@example.com
-    apiToken: YOUR_API_TOKEN_HERE
+```ini
+[auth]
+host=https://your-domain.atlassian.net
+email=your-email@example.com
+api_token=YOUR_API_TOKEN_HERE
 
-defaultProfile: cloud
-defaultFormat: json
----
+[defaults]
+format=json
 ```
 
 **Key behaviors:**
 
-- Profiles are referenced by name in commands
-- Multiple profiles support different Jira instances (cloud, staging, etc.)
+- Single profile configuration stored in home directory
 - Configuration is validated on load with clear error messages
 - API tokens are used for authentication (basic auth)
+- Run `jira-api-cli config` to set up or update configuration interactively
+- Config file is created with secure permissions (0o600 - read/write for owner only)
 
 ### REPL Interface
 
 - Custom prompt: `jira>`
-- **Special commands**: `help`, `commands`, `profiles`, `profile <name>`, `format <type>`, `clear`, `exit/quit/q`
-- **Jira commands**: 12 commands accepting JSON arguments
+- **Special commands**: `help`, `commands`, `format <type>`, `clear`, `exit/quit/q`
+- **Jira commands**: 11 commands accepting JSON arguments
   1. `list-projects` - List all accessible projects
   2. `get-project` - Get details of a specific project
   3. `list-issues` - List issues using JQL query
@@ -150,20 +156,20 @@ defaultFormat: json
   7. `add-comment` - Add a comment to an issue
   8. `delete-issue` - Delete an issue
   9. `download-attachment` - Download an attachment from an issue
-  10. `list-boards` - List agile boards
-  11. `get-user` - Get user information
-  12. `test-connection` - Test Jira API connection
+  10. `get-user` - Get user information
+  11. `test-connection` - Test Jira API connection
 
 ### TypeScript Configuration
 
 - **Target**: ES2022 modules (package.json `"type": "module"`)
 - **Output**: Compiles to `dist/` directory with modular structure
-- **Declarations**: Generates `.d.ts` files for all modules
+- **Declarations**: Generates `.d.ts` and `.d.ts.map` files for all modules
 - **Source Maps**: Enabled for debugging
+- **Import Style**: All imports must use `.js` extensions (TypeScript ES modules requirement)
 
 ## Available Commands
 
-The CLI provides **12 Jira API commands**:
+The CLI provides **11 Jira API commands**:
 
 1. **list-projects** - List all accessible projects
 2. **get-project** - Get details of a specific project
@@ -185,10 +191,8 @@ The CLI provides **12 Jira API commands**:
 npm start
 
 # Inside the REPL:
-jira> commands                          # List all 12 commands
+jira> commands                          # List all 11 commands
 jira> help                              # Show help
-jira> profiles                          # List available profiles
-jira> profile production                # Switch profile
 jira> format json                       # Change output format
 jira> list-projects
 jira> get-issue '{"issueIdOrKey":"PROJ-123"}'
@@ -198,13 +202,13 @@ jira> download-attachment '{"issueIdOrKey":"PROJ-123","attachmentId":"12345","ou
 jira> exit                              # Exit
 
 # Headless mode (one-off commands):
-npx jira-api-cli test-connection '{"profile":"cloud"}'
-npx jira-api-cli list-projects
-npx jira-api-cli get-issue '{"issueIdOrKey":"PROJ-123","format":"json"}'
-npx jira-api-cli --commands        # List all commands
-npx jira-api-cli list-issues -h    # Command-specific help
-npx jira-api-cli --help            # General help
-npx jira-api-cli --version         # Show version
+jira-api-cli test-connection
+jira-api-cli list-projects
+jira-api-cli get-issue '{"issueIdOrKey":"PROJ-123","format":"json"}'
+jira-api-cli --commands        # List all commands
+jira-api-cli list-issues -h    # Command-specific help
+jira-api-cli --help            # General help
+jira-api-cli --version         # Show version
 ```
 
 ## Code Structure & Module Responsibilities
@@ -218,7 +222,7 @@ npx jira-api-cli --version         # Show version
 ### CLI Class (`cli/wrapper.ts`)
 
 - Interactive REPL management
-- Configuration loading and profile switching
+- Configuration loading from `~/.jiracli`
 - User command processing
 - Jira command execution with result formatting
 - Graceful shutdown handling
@@ -274,26 +278,52 @@ npx jira-api-cli --version         # Show version
 - **Barrel Exports**: Each module directory has `index.ts` exporting public APIs
 - **ES Modules**: All imports use `.js` extensions (TypeScript requirement)
 - **Argument Parsing**: Supports JSON arguments for command parameters
-- **Client Pooling**: Reuses Jira clients per profile for efficiency
-- **Signal Handling**: Graceful shutdown on Ctrl+C (SIGINT) and SIGTERM
-- **Error Handling**: Try-catch blocks with user-friendly error messages
-- **Configuration**: YAML frontmatter in `.claude/atlassian-config.local.md`
+- **Client Caching**: `JiraUtil` maintains a single Jira client instance for efficient reuse
+- **Signal Handling**: Graceful shutdown on Ctrl+C (SIGINT) and SIGTERM via `disconnect()` method
+- **Error Handling**: Try-catch blocks with user-friendly error messages throughout
+- **Configuration**: INI-style format in `~/.jiracli` with secure file permissions (0o600)
+- **Format Flexibility**: Commands accept `format` parameter to override default output format
+
+### Data Flow Architecture
+
+**Interactive Mode:**
+
+1. `src/index.ts` → parses args → no command detected
+2. Creates `CLI` instance → calls `connect()` (loads config)
+3. Calls `start()` → readline REPL loop
+4. User input → `handleCommand()` → validates and routes
+5. Jira commands → `runCommand()` → executes via `jira-client.ts` functions
+6. Results formatted as JSON/TOON → displayed to user
+
+**Headless Mode:**
+
+1. `src/index.ts` → parses args → command detected
+2. `runCommand()` called directly with args
+3. Executes via `jira-client.ts` → outputs result
+4. Process exits
+
+### Client Management
+
+The CLI uses a **lazy initialization pattern** for the Jira client:
+
+- Client is created on-demand when first accessed
+- Single `JiraUtil` instance maintains the client
+- `clearClients()` function forces cleanup (useful for testing or token refresh)
 
 ## Dependencies
 
 **Runtime**:
 
-- `jira.js@^4.0.1` - Jira API client for Node.js
-- `yaml@^2.8.1` - YAML parser for config files
-- `@toon-format/toon@^2.0.0` - TOON format encoder
+- `jira.js@^5.2.2` - Jira API client for Node.js
+- `@toon-format/toon@^2.0.1` - TOON format encoder
 
 **Development**:
 
 - `typescript@^5.0.0` - TypeScript compiler
-- `tsx@^4.0.0` - TypeScript execution runtime
-- `vitest@^4.0.9` - Test framework
-- `eslint@^9.39.1` - Linting
-- `prettier@3.6.2` - Code formatting
+- `tsx@^4.0.0` - TypeScript execution runtime for development
+- `vitest@^4.0.9` - Test framework with UI and coverage
+- `eslint@^9.39.1` - Linting via `typescript-eslint`
+- `prettier@3.8.0` - Code formatting with import sorting
 - `ts-prune@^0.10.3` - Find unused exports
 
 ## Testing
@@ -303,6 +333,7 @@ This project uses **Vitest** for testing with the following configuration:
 - **Test Framework**: Vitest with globals enabled
 - **Test Files**: `tests/**/*.test.ts`
 - **Coverage**: V8 coverage provider with text, JSON, and HTML reports
+- **Coverage Exclusions**: Barrel exports (`index.ts`), test files, and config files
 
 ### Running Tests
 
@@ -320,25 +351,34 @@ npm run test:ui
 npm run test:coverage
 ```
 
-### Test Structure
+### Test Organization
 
 ```
 tests/
-├── unit/
-│   └── utils/
-│       └── config-loader.test.ts      # Config loading and validation
-└── integration/
-    └── jira-client.test.ts            # Jira API operations end-to-end
+├── unit/                             # Isolated unit tests
+│   ├── cli/                          # CLI wrapper and argument parsing tests
+│   ├── commands/                     # Command runner and helpers tests
+│   └── utils/                        # Utility module tests
+│       ├── arg-parser.test.ts
+│       ├── config-loader.test.ts
+│       ├── jira-client.test.ts
+│       └── jira-utils.test.ts
+└── integration/                      # End-to-end API tests
+    └── jira-client.test.ts           # Jira API integration tests
 ```
+
+**Note**: Integration tests (`tests/integration/`) require valid Jira credentials and will make real API calls. Unit tests (`tests/unit/`) mock all external dependencies.
 
 ## Important Notes
 
-1. **Configuration Required**: CLI requires `.claude/atlassian-config.local.md` with valid Jira profiles
+1. **Configuration Required**: CLI requires `~/.jiracli` config file (run `jira-api-cli config` to set up)
 2. **ES2022 Modules**: Project uses `"type": "module"` - no CommonJS
-3. **API Authentication**: Uses Jira API tokens with basic authentication
-4. **Multi-Profile**: Supports multiple Jira instances (cloud, staging, etc.)
+3. **API Authentication**: Uses Jira API tokens with basic authentication (email:apiToken as base64)
+4. **Single Profile**: Supports one Jira instance configuration
 5. **Flexible Output**: JSON or TOON formats for different use cases
-6. **Client Pooling**: Reuses clients per profile for better performance
+6. **Client Caching**: Reuses client instance for better performance
+7. **Command Detection**: Headless mode detects commands by matching against `COMMANDS[]` in constants
+8. **JSON Arguments**: Command parameters must be valid JSON strings - quote strings properly in shell
 
 ## Commit Message Convention
 
@@ -363,3 +403,23 @@ chore: update jira.js to latest version
 ```
 
 When creating pull requests, the PR title must follow this format.
+
+## Common Patterns
+
+### Adding a New Jira Command
+
+1. Add command name to `COMMANDS[]` in `src/config/constants.ts`
+2. Add command info to `COMMANDS_INFO[]`
+3. Add detail to `COMMANDS_DETAIL[]`
+4. Implement method in `JiraUtil` class in `src/utils/jira-utils.ts`
+5. Export wrapper function in `src/utils/jira-client.ts`
+6. Add handler in `CLI.runCommand()` in `src/cli/wrapper.ts` for REPL mode
+7. Add handler in `runCommand()` in `src/commands/runner.ts` for headless mode
+
+### Testing New Features
+
+- Unit tests go in `tests/unit/` mirroring the `src/` structure
+- Integration tests for Jira operations go in `tests/integration/jira-client.test.ts`
+- Use `describe.only()`/`it.only()` for focused test development
+- Mock external dependencies (Jira API, file system) in unit tests
+- Integration tests require real credentials and make actual API calls

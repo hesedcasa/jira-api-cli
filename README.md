@@ -40,56 +40,43 @@ npm install -g jira-api-cli
 3. Give it a label (e.g., "Jira CLI")
 4. Copy the generated token
 
-### Step 2: Create Configuration File
+### Step 2: Run Interactive Setup
 
-Create a configuration file at `.claude/atlassian-config.local.md` in your project root:
+The easiest way to configure the CLI is using the interactive setup command:
 
-```markdown
----
-profiles:
-  cloud:
-    host: https://your-domain.atlassian.net
-    email: your-email@example.com
-    apiToken: YOUR_API_TOKEN_HERE
+```bash
+jira-api-cli config
+```
 
-defaultProfile: cloud
-defaultFormat: json
----
+This will prompt you for:
+- Your Jira host URL (e.g., `https://your-domain.atlassian.net`)
+- Your Atlassian account email
+- Your API token
+- Default output format (json or toon)
 
-# Jira API Configuration
+### Manual Configuration
 
-This file stores your Jira API connection profiles.
+Alternatively, you can manually create the configuration file at `~/.jiracli`:
+
+```ini
+[auth]
+host=https://your-domain.atlassian.net
+email=your-email@example.com
+api_token=YOUR_API_TOKEN_HERE
+
+[defaults]
+format=json
 ```
 
 ### Configuration Options
 
-- **profiles**: Named Jira connection profiles
+- **[auth] section**:
   - `host`: Your Jira Cloud instance URL (must start with https://)
   - `email`: Your Atlassian account email
-  - `apiToken`: Your Jira API token
+  - `api_token`: Your Jira API token
 
-- **defaultProfile**: Profile name to use when none specified
-- **defaultFormat**: Default output format (`json` or `toon`)
-
-### Multiple Profiles Example
-
-```yaml
----
-profiles:
-  production:
-    host: https://company.atlassian.net
-    email: user@company.com
-    apiToken: prod_token_here
-
-  staging:
-    host: https://company-staging.atlassian.net
-    email: user@company.com
-    apiToken: staging_token_here
-
-defaultProfile: production
-defaultFormat: json
----
-```
+- **[defaults] section**:
+  - `format`: Default output format (`json` or `toon`)
 
 ## Quick Start
 
@@ -98,7 +85,7 @@ defaultFormat: json
 Start the CLI and interact with Jira through a REPL:
 
 ```bash
-npx jira-api-cli
+jira-api-cli
 ```
 
 Once started, you'll see the `jira>` prompt:
@@ -115,22 +102,22 @@ Execute single commands directly:
 
 ```bash
 # Test connection
-npx jira-api-cli test-connection
+jira-api-cli test-connection
 
 # List all projects
-npx jira-api-cli list-projects
+jira-api-cli list-projects
 
 # Get issue details
-npx jira-api-cli get-issue '{"issueIdOrKey":"PROJ-123"}'
+jira-api-cli get-issue '{"issueIdOrKey":"PROJ-123"}'
 
 # List issues with JQL
-npx jira-api-cli list-issues '{"jql":"project = PROJ AND status = Open","maxResults":10}'
+jira-api-cli list-issues '{"jql":"project = PROJ AND status = Open","maxResults":10}'
 
 # Add comment to an issue
-npx jira-api-cli add-comment '{"issueIdOrKey":"PROJ-123","body":"Status update from CLI","markdown":true}'
+jira-api-cli add-comment '{"issueIdOrKey":"PROJ-123","body":"Status update from CLI","markdown":true}'
 
 # Create a new issue
-npx jira-api-cli create-issue '{"fields":{"summary":"New bug","project":{"key":"PROJ"},"issuetype":{"name":"Bug"}}}'
+jira-api-cli create-issue '{"fields":{"summary":"New bug","project":{"key":"PROJ"},"issuetype":{"name":"Bug"}}}'
 ```
 
 ## Available Commands
@@ -233,8 +220,6 @@ Special commands available in the REPL:
 
 - **commands** - List all available commands
 - **help** or **?** - Show help message
-- **profile \<name\>** - Switch to a different profile
-- **profiles** - List all available profiles
 - **format \<type\>** - Set output format (json, toon)
 - **clear** - Clear the screen
 - **exit**, **quit**, or **q** - Exit the CLI
@@ -263,11 +248,10 @@ jira> list-issues
 
 ⚠️ **Important Security Notes:**
 
-1. **Never commit** `.claude/atlassian-config.local.md` to version control
-2. Add `*.local.md` to your `.gitignore`
+1. **Never commit** `~/.jiracli` to version control
+2. The config file is created with secure permissions
 3. Keep your API tokens secure and rotate them periodically
-4. Use different API tokens for different environments
-5. API tokens have the same permissions as your user account
+4. API tokens have the same permissions as your user account
 
 ## Development
 
@@ -304,75 +288,13 @@ npm run find-deadcode       # Find unused exports
 npm run pre-commit          # Run format + find-deadcode
 ```
 
-## Examples
-
-### Basic Workflow
-
-```bash
-# Start interactive mode
-npx jira-api-cli
-
-# List all projects
-jira> list-projects
-
-# Find open issues
-jira> list-issues {"jql":"status = Open","maxResults":10}
-
-# Get specific issue
-jira> get-issue {"issueIdOrKey":"PROJ-123"}
-
-# Update issue
-jira> update-issue {"issueIdOrKey":"PROJ-123","fields":{"assignee":{"accountId":"123456"}}}
-
-# Add comment to issue
-jira> add-comment {"issueIdOrKey":"PROJ-123","body":"Working on this now","markdown":true}
-
-# Create new issue
-jira> create-issue {"fields":{"summary":"Fix login bug","project":{"key":"PROJ"},"issuetype":{"name":"Bug"},"priority":{"name":"High"}}}
-```
-
-### Automation Scripts
-
-```bash
-#!/bin/bash
-# Get all high priority bugs
-npx jira-api-cli list-issues '{"jql":"priority = High AND type = Bug","maxResults":100}' > bugs.json
-
-# Test connection
-npx jira-api-cli test-connection
-
-# Create issue from script
-npx jira-api-cli create-issue '{
-  "fields": {
-    "summary": "Automated issue creation",
-    "project": {"key": "PROJ"},
-    "issuetype": {"name": "Task"},
-    "description": "Created via automation script"
-  }
-}'
-
-# Add status comment to issue
-npx jira-api-cli add-comment '{
-  "issueIdOrKey": "PROJ-123",
-  "body": "**Automation Update**\n\nBuild completed successfully at $(date)",
-  "markdown": true
-}'
-
-# Download attachment from issue
-npx jira-api-cli download-attachment '{
-  "issueIdOrKey": "PROJ-123",
-  "attachmentId": "12345",
-  "outputPath": "./logs/error.txt"
-}'
-```
-
 ## Troubleshooting
 
 ### Connection Issues
 
 ```bash
 # Test your connection
-npx jira-api-cli test-connection
+jira-api-cli test-connection
 
 # Common issues:
 # 1. Invalid API token - regenerate token

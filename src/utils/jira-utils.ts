@@ -23,26 +23,24 @@ export interface ApiResult {
  */
 export class JiraUtil {
   private config: Config;
-  private clientPool: Map<string, Version3Client>;
+  private client: Version3Client | null = null;
 
   constructor(config: Config) {
     this.config = config;
-    this.clientPool = new Map();
   }
 
   /**
-   * Get or create Jira client for a profile
+   * Get or create Jira client
    */
-  getClient(profileName: string): Version3Client {
-    if (this.clientPool.has(profileName)) {
-      return this.clientPool.get(profileName)!;
+  getClient(): Version3Client {
+    if (this.client) {
+      return this.client;
     }
 
-    const options = getJiraClientOptions(this.config, profileName);
-    const client = new Version3Client(options);
-    this.clientPool.set(profileName, client);
+    const options = getJiraClientOptions(this.config);
+    this.client = new Version3Client(options);
 
-    return client;
+    return this.client;
   }
 
   /**
@@ -76,9 +74,9 @@ export class JiraUtil {
   /**
    * List all projects
    */
-  async listProjects(profileName: string, format: 'json' | 'toon' = 'json'): Promise<ApiResult> {
+  async listProjects(format: 'json' | 'toon' = 'json'): Promise<ApiResult> {
     try {
-      const client = this.getClient(profileName);
+      const client = this.getClient();
       const response = await client.projects.searchProjects();
 
       // Simplify project data for display
@@ -109,9 +107,9 @@ export class JiraUtil {
   /**
    * Get project details
    */
-  async getProject(profileName: string, projectIdOrKey: string, format: 'json' | 'toon' = 'json'): Promise<ApiResult> {
+  async getProject(projectIdOrKey: string, format: 'json' | 'toon' = 'json'): Promise<ApiResult> {
     try {
-      const client = this.getClient(profileName);
+      const client = this.getClient();
       const project = await client.projects.getProject({ projectIdOrKey });
 
       return {
@@ -131,15 +129,9 @@ export class JiraUtil {
   /**
    * List issues using JQL
    */
-  async listIssues(
-    profileName: string,
-    jql?: string,
-    maxResults = 50,
-    startAt = 0,
-    format: 'json' | 'toon' = 'json'
-  ): Promise<ApiResult> {
+  async listIssues(jql?: string, maxResults = 50, startAt = 0, format: 'json' | 'toon' = 'json'): Promise<ApiResult> {
     try {
-      const client = this.getClient(profileName);
+      const client = this.getClient();
       const response = await client.issueSearch.searchForIssuesUsingJql({
         jql: jql || '',
         maxResults,
@@ -173,9 +165,9 @@ export class JiraUtil {
   /**
    * Get issue details
    */
-  async getIssue(profileName: string, issueIdOrKey: string, format: 'json' | 'toon' = 'json'): Promise<ApiResult> {
+  async getIssue(issueIdOrKey: string, format: 'json' | 'toon' = 'json'): Promise<ApiResult> {
     try {
-      const client = this.getClient(profileName);
+      const client = this.getClient();
       const issue = await client.issues.getIssue({ issueIdOrKey });
 
       return {
@@ -196,13 +188,12 @@ export class JiraUtil {
    * Create a new issue
    */
   async createIssue(
-    profileName: string,
     fields: Record<string, unknown>,
     markdown = false,
     format: 'json' | 'toon' = 'json'
   ): Promise<ApiResult> {
     try {
-      const client = this.getClient(profileName);
+      const client = this.getClient();
 
       // Convert description to ADF format if markdown is enabled
       const processedFields = { ...fields };
@@ -230,14 +221,9 @@ export class JiraUtil {
   /**
    * Update an existing issue
    */
-  async updateIssue(
-    profileName: string,
-    issueIdOrKey: string,
-    fields: Record<string, unknown>,
-    markdown = false
-  ): Promise<ApiResult> {
+  async updateIssue(issueIdOrKey: string, fields: Record<string, unknown>, markdown = false): Promise<ApiResult> {
     try {
-      const client = this.getClient(profileName);
+      const client = this.getClient();
 
       // Convert description to ADF format if markdown is enabled
       const processedFields = { ...fields };
@@ -267,14 +253,13 @@ export class JiraUtil {
    * Add a comment to an issue
    */
   async addComment(
-    profileName: string,
     issueIdOrKey: string,
     body: string,
     markdown = false,
     format: 'json' | 'toon' = 'json'
   ): Promise<ApiResult> {
     try {
-      const client = this.getClient(profileName);
+      const client = this.getClient();
 
       // Convert body to ADF format
       const bodyContent = markdown ? markdownToAdf(body) : textToAdf(body);
@@ -301,9 +286,9 @@ export class JiraUtil {
   /**
    * Delete an issue
    */
-  async deleteIssue(profileName: string, issueIdOrKey: string): Promise<ApiResult> {
+  async deleteIssue(issueIdOrKey: string): Promise<ApiResult> {
     try {
-      const client = this.getClient(profileName);
+      const client = this.getClient();
       await client.issues.deleteIssue({ issueIdOrKey });
 
       return {
@@ -322,14 +307,9 @@ export class JiraUtil {
   /**
    * Get user information
    */
-  async getUser(
-    profileName: string,
-    accountId?: string,
-    username?: string,
-    format: 'json' | 'toon' = 'json'
-  ): Promise<ApiResult> {
+  async getUser(accountId?: string, username?: string, format: 'json' | 'toon' = 'json'): Promise<ApiResult> {
     try {
-      const client = this.getClient(profileName);
+      const client = this.getClient();
 
       if (accountId) {
         const user = await client.users.getUser({ accountId });
@@ -373,16 +353,16 @@ export class JiraUtil {
   /**
    * Test Jira API connection
    */
-  async testConnection(profileName: string): Promise<ApiResult> {
+  async testConnection(): Promise<ApiResult> {
     try {
-      const client = this.getClient(profileName);
+      const client = this.getClient();
       const serverInfo = await client.serverInfo.getServerInfo();
       const currentUser = await client.myself.getCurrentUser();
 
       return {
         success: true,
         data: { serverInfo, currentUser },
-        result: `✅ Connection successful!\n\nProfile: ${profileName}\nServer Version: ${serverInfo.version}\nServer Title: ${serverInfo.serverTitle}\nLogged in as: ${currentUser.displayName} (${currentUser.emailAddress})`,
+        result: `✅ Connection successful!\n\nServer Version: ${serverInfo.version}\nServer Title: ${serverInfo.serverTitle}\nLogged in as: ${currentUser.displayName} (${currentUser.emailAddress})`,
       };
     } catch (error: unknown) {
       const errorMessage = error instanceof Error ? error.message : String(error);
@@ -394,23 +374,18 @@ export class JiraUtil {
   }
 
   /**
-   * Clear client pool (for cleanup)
+   * Clear client (for cleanup)
    */
   clearClients(): void {
-    this.clientPool.clear();
+    this.client = null;
   }
 
   /**
    * Download attachment from an issue
    */
-  async downloadAttachment(
-    profileName: string,
-    issueIdOrKey: string,
-    attachmentId: string,
-    outputPath?: string
-  ): Promise<ApiResult> {
+  async downloadAttachment(issueIdOrKey: string, attachmentId: string, outputPath?: string): Promise<ApiResult> {
     try {
-      const client = this.getClient(profileName);
+      const client = this.getClient();
 
       // Get attachment metadata
       const attachment = await client.issueAttachments.getAttachment({ id: attachmentId });
@@ -422,17 +397,8 @@ export class JiraUtil {
         };
       }
 
-      // Get profile credentials for authenticated download
-      const profile = this.config.profiles[profileName];
-      if (!profile) {
-        return {
-          success: false,
-          error: `ERROR: Profile "${profileName}" not found`,
-        };
-      }
-
-      // Build Basic auth header
-      const authString = Buffer.from(`${profile.email}:${profile.apiToken}`).toString('base64');
+      // Build Basic auth header from config
+      const authString = Buffer.from(`${this.config.email}:${this.config.apiToken}`).toString('base64');
 
       // Download the attachment content
       const response = await fetch(attachment.content, {

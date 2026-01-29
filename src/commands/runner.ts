@@ -10,6 +10,7 @@ import {
   listIssues,
   listProjects,
   loadConfig,
+  setupConfig,
   testConnection,
   updateIssue,
 } from '../utils/index.js';
@@ -26,20 +27,25 @@ export const runCommand = async (
   _flag: string | null
 ): Promise<void> => {
   try {
-    // Load config to get default profile
-    const projectRoot = process.env.CLAUDE_PROJECT_ROOT || process.cwd();
-    const config = loadConfig(projectRoot);
+    // Handle config command first (before loading config)
+    if (command === 'config') {
+      await setupConfig();
+      clearClients();
+      process.exit(0);
+    }
+
+    // Load config to get default format
+    const config = loadConfig();
 
     // Parse arguments
     const args = arg && arg.trim() !== '' ? JSON.parse(arg) : {};
-    const profile = args.profile || config.defaultProfile;
     const format = args.format || config.defaultFormat;
 
     let result;
 
     switch (command) {
       case 'list-projects':
-        result = await listProjects(profile, format);
+        result = await listProjects(format);
         break;
 
       case 'get-project':
@@ -47,11 +53,11 @@ export const runCommand = async (
           console.error('ERROR: "projectIdOrKey" parameter is required');
           process.exit(1);
         }
-        result = await getProject(profile, args.projectIdOrKey, format);
+        result = await getProject(args.projectIdOrKey, format);
         break;
 
       case 'list-issues':
-        result = await listIssues(profile, args.jql, args.maxResults, args.startAt, format);
+        result = await listIssues(args.jql, args.maxResults, args.startAt, format);
         break;
 
       case 'get-issue':
@@ -59,7 +65,7 @@ export const runCommand = async (
           console.error('ERROR: "issueIdOrKey" parameter is required');
           process.exit(1);
         }
-        result = await getIssue(profile, args.issueIdOrKey, format);
+        result = await getIssue(args.issueIdOrKey, format);
         break;
 
       case 'create-issue':
@@ -67,7 +73,7 @@ export const runCommand = async (
           console.error('ERROR: "fields" parameter is required');
           process.exit(1);
         }
-        result = await createIssue(profile, args.fields, args.markdown || false, format);
+        result = await createIssue(args.fields, args.markdown || false, format);
         break;
 
       case 'update-issue':
@@ -75,7 +81,7 @@ export const runCommand = async (
           console.error('ERROR: "issueIdOrKey" and "fields" parameters are required');
           process.exit(1);
         }
-        result = await updateIssue(profile, args.issueIdOrKey, args.fields, args.markdown || false);
+        result = await updateIssue(args.issueIdOrKey, args.fields, args.markdown || false);
         break;
 
       case 'add-comment':
@@ -83,7 +89,7 @@ export const runCommand = async (
           console.error('ERROR: "issueIdOrKey" and "body" parameters are required');
           process.exit(1);
         }
-        result = await addComment(profile, args.issueIdOrKey, args.body, args.markdown || false, format);
+        result = await addComment(args.issueIdOrKey, args.body, args.markdown || false, format);
         break;
 
       case 'delete-issue':
@@ -91,15 +97,15 @@ export const runCommand = async (
           console.error('ERROR: "issueIdOrKey" parameter is required');
           process.exit(1);
         }
-        result = await deleteIssue(profile, args.issueIdOrKey);
+        result = await deleteIssue(args.issueIdOrKey);
         break;
 
       case 'get-user':
-        result = await getUser(profile, args.accountId, args.username, format);
+        result = await getUser(args.accountId, args.username, format);
         break;
 
       case 'test-connection':
-        result = await testConnection(profile);
+        result = await testConnection();
         break;
 
       case 'download-attachment':
@@ -107,7 +113,7 @@ export const runCommand = async (
           console.error('ERROR: "issueIdOrKey" and "attachmentId" parameters are required');
           process.exit(1);
         }
-        result = await downloadAttachment(profile, args.issueIdOrKey, args.attachmentId, args.outputPath);
+        result = await downloadAttachment(args.issueIdOrKey, args.attachmentId, args.outputPath);
         break;
 
       default:

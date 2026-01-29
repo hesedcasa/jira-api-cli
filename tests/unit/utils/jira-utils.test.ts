@@ -47,19 +47,9 @@ describe('JiraUtil', () => {
 
   beforeEach(() => {
     mockConfig = {
-      profiles: {
-        test: {
-          host: 'https://test.atlassian.net',
-          email: 'test@example.com',
-          apiToken: 'test-token',
-        },
-        production: {
-          host: 'https://production.atlassian.net',
-          email: 'prod@example.com',
-          apiToken: 'prod-token',
-        },
-      },
-      defaultProfile: 'test',
+      host: 'https://test.atlassian.net',
+      email: 'test@example.com',
+      apiToken: 'test-token',
       defaultFormat: 'json',
     };
 
@@ -68,28 +58,17 @@ describe('JiraUtil', () => {
   });
 
   describe('getClient', () => {
-    it('should create a new client for a profile', () => {
-      const client = jiraUtil.getClient('test');
+    it('should create a new client', () => {
+      const client = jiraUtil.getClient();
 
       expect(client).toBeDefined();
     });
 
-    it('should reuse existing client for the same profile', () => {
-      const client1 = jiraUtil.getClient('test');
-      const client2 = jiraUtil.getClient('test');
+    it('should reuse existing client', () => {
+      const client1 = jiraUtil.getClient();
+      const client2 = jiraUtil.getClient();
 
       expect(client1).toBe(client2);
-    });
-
-    it('should create different clients for different profiles', () => {
-      const testClient = jiraUtil.getClient('test');
-      const prodClient = jiraUtil.getClient('production');
-
-      expect(testClient).not.toBe(prodClient);
-    });
-
-    it('should throw error for non-existent profile', () => {
-      expect(() => jiraUtil.getClient('nonexistent')).toThrow('Profile "nonexistent" not found');
     });
   });
 
@@ -195,14 +174,14 @@ describe('JiraUtil', () => {
   describe('clearClients', () => {
     it('should clear all clients from the pool', () => {
       // Create some clients
-      jiraUtil.getClient('test');
+      jiraUtil.getClient();
       jiraUtil.getClient('production');
 
       // Clear the pool
       jiraUtil.clearClients();
 
       // Getting the same client again should create a new instance
-      const newClient = jiraUtil.getClient('test');
+      const newClient = jiraUtil.getClient();
       expect(newClient).toBeDefined();
     });
 
@@ -214,90 +193,90 @@ describe('JiraUtil', () => {
 
   describe('API Methods - Error Handling', () => {
     it('listProjects should handle errors gracefully', async () => {
-      const client = jiraUtil.getClient('test');
+      const client = jiraUtil.getClient();
       vi.spyOn(client.projects, 'searchProjects').mockRejectedValue(new Error('API Error'));
 
-      const result = await jiraUtil.listProjects('test', 'json');
+      const result = await jiraUtil.listProjects('json');
 
       expect(result.success).toBe(false);
       expect(result.error).toContain('ERROR: API Error');
     });
 
     it('getProject should handle errors gracefully', async () => {
-      const client = jiraUtil.getClient('test');
+      const client = jiraUtil.getClient();
       vi.spyOn(client.projects, 'getProject').mockRejectedValue(new Error('Project not found'));
 
-      const result = await jiraUtil.getProject('test', 'PROJ-1', 'json');
+      const result = await jiraUtil.getProject('PROJ-1', 'json');
 
       expect(result.success).toBe(false);
       expect(result.error).toContain('ERROR: Project not found');
     });
 
     it('listIssues should handle errors gracefully', async () => {
-      const client = jiraUtil.getClient('test');
+      const client = jiraUtil.getClient();
       vi.spyOn(client.issueSearch, 'searchForIssuesUsingJql').mockRejectedValue(new Error('JQL Error'));
 
-      const result = await jiraUtil.listIssues('test', 'project = PROJ', 50, 0, 'json');
+      const result = await jiraUtil.listIssues('project = PROJ', 50, 0, 'json');
 
       expect(result.success).toBe(false);
       expect(result.error).toContain('ERROR: JQL Error');
     });
 
     it('getIssue should handle errors gracefully', async () => {
-      const client = jiraUtil.getClient('test');
+      const client = jiraUtil.getClient();
       vi.spyOn(client.issues, 'getIssue').mockRejectedValue(new Error('Issue not found'));
 
-      const result = await jiraUtil.getIssue('test', 'PROJ-1', 'json');
+      const result = await jiraUtil.getIssue('PROJ-1', 'json');
 
       expect(result.success).toBe(false);
       expect(result.error).toContain('ERROR: Issue not found');
     });
 
     it('createIssue should handle errors gracefully', async () => {
-      const client = jiraUtil.getClient('test');
+      const client = jiraUtil.getClient();
       vi.spyOn(client.issues, 'createIssue').mockRejectedValue(new Error('Validation error'));
 
-      const result = await jiraUtil.createIssue('test', { summary: 'Test' }, 'json');
+      const result = await jiraUtil.createIssue({ summary: 'Test' }, false, 'json');
 
       expect(result.success).toBe(false);
       expect(result.error).toContain('ERROR: Validation error');
     });
 
     it('updateIssue should handle errors gracefully', async () => {
-      const client = jiraUtil.getClient('test');
+      const client = jiraUtil.getClient();
       vi.spyOn(client.issues, 'editIssue').mockRejectedValue(new Error('Update failed'));
 
-      const result = await jiraUtil.updateIssue('test', 'PROJ-1', { summary: 'Updated' });
+      const result = await jiraUtil.updateIssue('PROJ-1', { summary: 'Updated' });
 
       expect(result.success).toBe(false);
       expect(result.error).toContain('ERROR: Update failed');
     });
 
     it('addComment should handle errors gracefully', async () => {
-      const client = jiraUtil.getClient('test');
+      const client = jiraUtil.getClient();
       vi.spyOn(client.issueComments, 'addComment').mockRejectedValue(new Error('Comment add failed'));
 
-      const result = await jiraUtil.addComment('test', 'PROJ-1', 'Test comment', false, 'json');
+      const result = await jiraUtil.addComment('PROJ-1', 'Test comment', false, 'json');
 
       expect(result.success).toBe(false);
       expect(result.error).toContain('ERROR: Comment add failed');
     });
 
     it('deleteIssue should handle errors gracefully', async () => {
-      const client = jiraUtil.getClient('test');
+      const client = jiraUtil.getClient();
       vi.spyOn(client.issues, 'deleteIssue').mockRejectedValue(new Error('Delete failed'));
 
-      const result = await jiraUtil.deleteIssue('test', 'PROJ-1');
+      const result = await jiraUtil.deleteIssue('PROJ-1');
 
       expect(result.success).toBe(false);
       expect(result.error).toContain('ERROR: Delete failed');
     });
 
     it('testConnection should handle errors gracefully', async () => {
-      const client = jiraUtil.getClient('test');
+      const client = jiraUtil.getClient();
       vi.spyOn(client.serverInfo, 'getServerInfo').mockRejectedValue(new Error('Connection failed'));
 
-      const result = await jiraUtil.testConnection('test');
+      const result = await jiraUtil.testConnection();
 
       expect(result.success).toBe(false);
       expect(result.error).toContain('ERROR: Connection failed');
@@ -306,7 +285,7 @@ describe('JiraUtil', () => {
 
   describe('API Methods - Success Cases', () => {
     it('listProjects should return formatted projects', async () => {
-      const client = jiraUtil.getClient('test');
+      const client = jiraUtil.getClient();
       vi.spyOn(client.projects, 'searchProjects').mockResolvedValue({
         values: [
           { key: 'PROJ', name: 'Project 1', projectTypeKey: 'software', id: '10000' },
@@ -314,7 +293,7 @@ describe('JiraUtil', () => {
         ],
       });
 
-      const result = await jiraUtil.listProjects('test', 'json');
+      const result = await jiraUtil.listProjects('json');
 
       expect(result.success).toBe(true);
       expect(result.data).toHaveLength(2);
@@ -323,11 +302,11 @@ describe('JiraUtil', () => {
     });
 
     it('getProject should return project details', async () => {
-      const client = jiraUtil.getClient('test');
+      const client = jiraUtil.getClient();
       const mockProject = { key: 'PROJ', name: 'Project 1', id: '10000' };
       vi.spyOn(client.projects, 'getProject').mockResolvedValue(mockProject);
 
-      const result = await jiraUtil.getProject('test', 'PROJ', 'json');
+      const result = await jiraUtil.getProject('PROJ', 'json');
 
       expect(result.success).toBe(true);
       expect(result.data).toEqual(mockProject);
@@ -336,7 +315,7 @@ describe('JiraUtil', () => {
     });
 
     it('listIssues should return formatted issues', async () => {
-      const client = jiraUtil.getClient('test');
+      const client = jiraUtil.getClient();
       vi.spyOn(client.issueSearch, 'searchForIssuesUsingJql').mockResolvedValue({
         issues: [
           {
@@ -352,7 +331,7 @@ describe('JiraUtil', () => {
         total: 1,
       });
 
-      const result = await jiraUtil.listIssues('test', 'project = PROJ', 50, 0, 'json');
+      const result = await jiraUtil.listIssues('project = PROJ', 50, 0, 'json');
 
       expect(result.success).toBe(true);
       expect(result.data).toHaveLength(1);
@@ -361,30 +340,30 @@ describe('JiraUtil', () => {
     });
 
     it('createIssue should return created issue', async () => {
-      const client = jiraUtil.getClient('test');
+      const client = jiraUtil.getClient();
       vi.spyOn(client.issues, 'createIssue').mockResolvedValue({
         key: 'PROJ-123',
         id: '10123',
       });
 
-      const result = await jiraUtil.createIssue('test', { summary: 'New issue' }, 'json');
+      const result = await jiraUtil.createIssue({ summary: 'New issue' }, 'json');
 
       expect(result.success).toBe(true);
       expect(result.result).toContain('PROJ-123');
     });
 
     it('updateIssue should return success message', async () => {
-      const client = jiraUtil.getClient('test');
+      const client = jiraUtil.getClient();
       vi.spyOn(client.issues, 'editIssue').mockResolvedValue(undefined);
 
-      const result = await jiraUtil.updateIssue('test', 'PROJ-1', { summary: 'Updated' });
+      const result = await jiraUtil.updateIssue('PROJ-1', { summary: 'Updated' });
 
       expect(result.success).toBe(true);
       expect(result.result).toContain('updated successfully');
     });
 
     it('addComment should add plain text comment successfully', async () => {
-      const client = jiraUtil.getClient('test');
+      const client = jiraUtil.getClient();
       const mockComment = {
         id: '10001',
         body: {
@@ -405,7 +384,7 @@ describe('JiraUtil', () => {
       };
       vi.spyOn(client.issueComments, 'addComment').mockResolvedValue(mockComment);
 
-      const result = await jiraUtil.addComment('test', 'PROJ-1', 'This is a plain text comment', false, 'json');
+      const result = await jiraUtil.addComment('PROJ-1', 'This is a plain text comment', false, 'json');
 
       expect(result.success).toBe(true);
       expect(result.data).toEqual(mockComment);
@@ -413,7 +392,7 @@ describe('JiraUtil', () => {
     });
 
     it('addComment should add markdown comment successfully', async () => {
-      const client = jiraUtil.getClient('test');
+      const client = jiraUtil.getClient();
       const mockComment = {
         id: '10002',
         body: {
@@ -430,7 +409,7 @@ describe('JiraUtil', () => {
       vi.spyOn(client.issueComments, 'addComment').mockResolvedValue(mockComment);
 
       const markdown = 'This is **bold** and *italic*\n\n- Item 1\n- Item 2';
-      const result = await jiraUtil.addComment('test', 'PROJ-1', markdown, true, 'json');
+      const result = await jiraUtil.addComment('PROJ-1', markdown, true, 'json');
 
       expect(result.success).toBe(true);
       expect(result.data).toEqual(mockComment);
@@ -446,7 +425,7 @@ describe('JiraUtil', () => {
     });
 
     it('addComment should format result as toon', async () => {
-      const client = jiraUtil.getClient('test');
+      const client = jiraUtil.getClient();
       const mockComment = {
         id: '10003',
         body: {
@@ -457,14 +436,14 @@ describe('JiraUtil', () => {
       };
       vi.spyOn(client.issueComments, 'addComment').mockResolvedValue(mockComment);
 
-      const result = await jiraUtil.addComment('test', 'PROJ-1', 'Test comment', false, 'toon');
+      const result = await jiraUtil.addComment('PROJ-1', 'Test comment', false, 'toon');
 
       expect(result.success).toBe(true);
       expect(typeof result.result).toBe('string');
     });
 
     it('addComment should handle empty comment', async () => {
-      const client = jiraUtil.getClient('test');
+      const client = jiraUtil.getClient();
       const mockComment = {
         id: '10004',
         body: {
@@ -475,24 +454,24 @@ describe('JiraUtil', () => {
       };
       vi.spyOn(client.issueComments, 'addComment').mockResolvedValue(mockComment);
 
-      const result = await jiraUtil.addComment('test', 'PROJ-1', '', false, 'json');
+      const result = await jiraUtil.addComment('PROJ-1', '', false, 'json');
 
       expect(result.success).toBe(true);
       expect(result.data).toEqual(mockComment);
     });
 
     it('deleteIssue should return success message', async () => {
-      const client = jiraUtil.getClient('test');
+      const client = jiraUtil.getClient();
       vi.spyOn(client.issues, 'deleteIssue').mockResolvedValue(undefined);
 
-      const result = await jiraUtil.deleteIssue('test', 'PROJ-1');
+      const result = await jiraUtil.deleteIssue('PROJ-1');
 
       expect(result.success).toBe(true);
       expect(result.result).toContain('deleted successfully');
     });
 
     it('testConnection should return connection info', async () => {
-      const client = jiraUtil.getClient('test');
+      const client = jiraUtil.getClient();
       vi.spyOn(client.serverInfo, 'getServerInfo').mockResolvedValue({
         version: '9.0.0',
         serverTitle: 'Test Jira',
@@ -502,7 +481,7 @@ describe('JiraUtil', () => {
         emailAddress: 'test@example.com',
       });
 
-      const result = await jiraUtil.testConnection('test');
+      const result = await jiraUtil.testConnection();
 
       expect(result.success).toBe(true);
       expect(result.result).toContain('Connection successful');
@@ -511,7 +490,7 @@ describe('JiraUtil', () => {
     });
 
     it('getUser should return user by account ID', async () => {
-      const client = jiraUtil.getClient('test');
+      const client = jiraUtil.getClient();
       const mockUser = {
         accountId: '123',
         displayName: 'John Doe',
@@ -519,14 +498,14 @@ describe('JiraUtil', () => {
       };
       vi.spyOn(client.users, 'getUser').mockResolvedValue(mockUser);
 
-      const result = await jiraUtil.getUser('test', '123', undefined, 'json');
+      const result = await jiraUtil.getUser('123', undefined, 'json');
 
       expect(result.success).toBe(true);
       expect(result.data).toEqual(mockUser);
     });
 
     it('getUser should return current user when no params provided', async () => {
-      const client = jiraUtil.getClient('test');
+      const client = jiraUtil.getClient();
       const mockUser = {
         accountId: 'current',
         displayName: 'Current User',
@@ -534,7 +513,7 @@ describe('JiraUtil', () => {
       };
       vi.spyOn(client.myself, 'getCurrentUser').mockResolvedValue(mockUser);
 
-      const result = await jiraUtil.getUser('test', undefined, undefined, 'json');
+      const result = await jiraUtil.getUser(undefined, undefined, 'json');
 
       expect(result.success).toBe(true);
       expect(result.data).toEqual(mockUser);
@@ -542,7 +521,7 @@ describe('JiraUtil', () => {
     });
 
     it('getUser should search by username', async () => {
-      const client = jiraUtil.getClient('test');
+      const client = jiraUtil.getClient();
       const mockUser = {
         accountId: '456',
         displayName: 'Jane Doe',
@@ -550,17 +529,17 @@ describe('JiraUtil', () => {
       };
       vi.spyOn(client.userSearch, 'findUsers').mockResolvedValue([mockUser]);
 
-      const result = await jiraUtil.getUser('test', undefined, 'jane', 'json');
+      const result = await jiraUtil.getUser(undefined, 'jane', 'json');
 
       expect(result.success).toBe(true);
       expect(result.data).toEqual(mockUser);
     });
 
     it('getUser should handle user not found by username', async () => {
-      const client = jiraUtil.getClient('test');
+      const client = jiraUtil.getClient();
       vi.spyOn(client.userSearch, 'findUsers').mockResolvedValue([]);
 
-      const result = await jiraUtil.getUser('test', undefined, 'nonexistent', 'json');
+      const result = await jiraUtil.getUser(undefined, 'nonexistent', 'json');
 
       expect(result.success).toBe(false);
       expect(result.error).toContain('not found');

@@ -1,5 +1,6 @@
 import { getCurrentVersion, printAvailableCommands, printCommandDetail, runCommand } from '../commands/index.js';
 import { COMMANDS } from '../config/index.js';
+import { setupConfig } from './config-loader.js';
 
 /**
  * Parses and handles command line arguments
@@ -8,6 +9,18 @@ import { COMMANDS } from '../config/index.js';
  */
 export const parseArguments = async (args: string[]): Promise<boolean> => {
   for (let i = 0; i < args.length; i++) {
+    // Config setup/update command
+    if (args[i] === 'config') {
+      try {
+        await setupConfig();
+        process.exit(0);
+      } catch (error: unknown) {
+        const errorMessage = error instanceof Error ? error.message : String(error);
+        console.error(`Configuration setup failed: ${errorMessage}`);
+        process.exit(1);
+      }
+    }
+
     // Version flag
     if (args[i] === '--version' || args[i] === '-v') {
       console.log(getCurrentVersion());
@@ -55,20 +68,22 @@ Jira CLI
 
 Usage:
 
-npx jira-api-cli                             start interactive CLI
-npx jira-api-cli --commands                  list all available commands
-npx jira-api-cli <command> -h                quick help on <command>
-npx jira-api-cli <command> <arg>             run command in headless mode
+jira-api-cli                             start interactive CLI
+jira-api-cli config                      setup or update configuration
+jira-api-cli --commands                  list all available commands
+jira-api-cli <command> -h                quick help on <command>
+jira-api-cli <command> <arg>             run command in headless mode
 
 All commands:
 
 ${COMMANDS.join(', ')}
 
 Examples:
-  npx jira-api-cli query '{"query":"SELECT * FROM users LIMIT 5"}'
-  npx jira-api-cli describe-table '{"table":"users","profile":"local"}'
-  npx jira-api-cli list-databases '{"profile":"local"}'
-  npx jira-api-cli test-connection
+  jira-api-cli config
+  jira-api-cli list-projects
+  jira-api-cli get-issue '{"issueIdOrKey":"PROJ-123"}'
+  jira-api-cli list-issues '{"jql":"project = PROJ AND status = Open","maxResults":10}'
+  jira-api-cli test-connection
 
 `);
 };

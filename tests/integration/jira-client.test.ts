@@ -19,29 +19,21 @@ import {
 // Mock the config-loader module
 vi.mock('../../src/utils/config-loader.js', () => ({
   loadConfig: vi.fn(() => ({
-    profiles: {
-      test: {
-        host: 'https://test.atlassian.net',
-        email: 'test@example.com',
-        apiToken: 'test-token',
-      },
-    },
-    defaultProfile: 'test',
+    host: 'https://test.atlassian.net',
+    email: 'test@example.com',
+    apiToken: 'test-token',
     defaultFormat: 'json' as const,
   })),
-  getJiraClientOptions: vi.fn((_config, profileName) => {
-    if (profileName === 'test') {
-      return {
-        host: 'https://test.atlassian.net',
-        authentication: {
-          basic: {
-            email: 'test@example.com',
-            apiToken: 'test-token',
-          },
+  getJiraClientOptions: vi.fn(config => {
+    return {
+      host: config.host,
+      authentication: {
+        basic: {
+          email: config.email,
+          apiToken: config.apiToken,
         },
-      };
-    }
-    throw new Error(`Profile "${profileName}" not found`);
+      },
+    };
   }),
 }));
 
@@ -175,7 +167,7 @@ describe('jira-client (integration)', () => {
 
   describe('listProjects', () => {
     it('should list all projects successfully', async () => {
-      const result = await listProjects('test', 'json');
+      const result = await listProjects('json');
 
       expect(result.success).toBe(true);
       expect(result.data).toHaveLength(2);
@@ -184,7 +176,7 @@ describe('jira-client (integration)', () => {
     });
 
     it('should format projects as toon', async () => {
-      const result = await listProjects('test', 'toon');
+      const result = await listProjects('toon');
 
       expect(result.success).toBe(true);
       expect(typeof result.result).toBe('string');
@@ -193,7 +185,7 @@ describe('jira-client (integration)', () => {
 
   describe('getProject', () => {
     it('should get project details successfully', async () => {
-      const result = await getProject('test', 'TEST', 'json');
+      const result = await getProject('TEST', 'json');
 
       expect(result.success).toBe(true);
       expect(result.data).toHaveProperty('key', 'TEST');
@@ -213,7 +205,7 @@ describe('jira-client (integration)', () => {
     });
 
     it('should list issues with JQL query', async () => {
-      const result = await listIssues('test', 'project = TEST', 10, 0, 'json');
+      const result = await listIssues('project = TEST', 10, 0, 'json');
 
       expect(result.success).toBe(true);
       expect(result.data).toHaveLength(2);
@@ -228,7 +220,7 @@ describe('jira-client (integration)', () => {
 
   describe('getIssue', () => {
     it('should get issue details successfully', async () => {
-      const result = await getIssue('test', 'TEST-1', 'json');
+      const result = await getIssue('TEST-1', 'json');
 
       expect(result.success).toBe(true);
       expect(result.data).toHaveProperty('key', 'TEST-1');
@@ -352,7 +344,7 @@ describe('jira-client (integration)', () => {
         summary: 'Updated summary',
       };
 
-      const result = await updateIssue('test', 'TEST-1', fields, false);
+      const result = await updateIssue('TEST-1', fields, false);
 
       expect(result.success).toBe(true);
       expect(result.result).toContain('updated successfully');
@@ -366,7 +358,7 @@ describe('jira-client (integration)', () => {
         priority: { name: 'High' },
       };
 
-      const result = await updateIssue('test', 'TEST-1', fields, false, 'json');
+      const result = await updateIssue('TEST-1', fields, false, 'json');
 
       expect(result.success).toBe(true);
     });
@@ -377,7 +369,7 @@ describe('jira-client (integration)', () => {
         description: 'This is **bold** and *italic*\n\n- Item 1\n- Item 2',
       };
 
-      const result = await updateIssue('test', 'TEST-1', fields, true);
+      const result = await updateIssue('TEST-1', fields, true);
 
       expect(result.success).toBe(true);
       expect(result.result).toContain('updated successfully');
@@ -390,7 +382,7 @@ describe('jira-client (integration)', () => {
         description: 'Plain text description',
       };
 
-      const result = await updateIssue('test', 'TEST-1', fields, false);
+      const result = await updateIssue('TEST-1', fields, false);
 
       expect(result.success).toBe(true);
     });
@@ -400,7 +392,7 @@ describe('jira-client (integration)', () => {
         summary: 'Updated summary',
       };
 
-      const result = await updateIssue('test', 'TEST-1', fields, true);
+      const result = await updateIssue('TEST-1', fields, true);
 
       expect(result.success).toBe(true);
     });
@@ -411,7 +403,7 @@ describe('jira-client (integration)', () => {
         description: { type: 'doc', version: 1, content: [] },
       };
 
-      const result = await updateIssue('test', 'TEST-1', fields, true);
+      const result = await updateIssue('TEST-1', fields, true);
 
       expect(result.success).toBe(true);
     });
@@ -421,7 +413,7 @@ describe('jira-client (integration)', () => {
         summary: 'Updated summary',
       };
 
-      const result = await updateIssue('test', 'TEST-1', fields, false);
+      const result = await updateIssue('TEST-1', fields, false);
 
       expect(result.success).toBe(true);
       expect(typeof result.result).toBe('string');
@@ -432,7 +424,7 @@ describe('jira-client (integration)', () => {
         summary: 'Updated summary',
       };
 
-      const result = await updateIssue('test', 'TEST-1', fields);
+      const result = await updateIssue('TEST-1', fields);
 
       expect(result.success).toBe(true);
     });
@@ -442,7 +434,7 @@ describe('jira-client (integration)', () => {
         summary: 'Updated summary',
       };
 
-      const result = await updateIssue('test', 'TEST-1', fields, false);
+      const result = await updateIssue('TEST-1', fields, false);
 
       expect(result.success).toBe(true);
     });
@@ -450,7 +442,7 @@ describe('jira-client (integration)', () => {
 
   describe('addComment', () => {
     it('should add plain text comment successfully', async () => {
-      const result = await addComment('test', 'TEST-1', 'This is a plain text comment', false, 'json');
+      const result = await addComment('TEST-1', 'This is a plain text comment', false, 'json');
 
       expect(result.success).toBe(true);
       expect(result.data).toHaveProperty('id', '10001');
@@ -459,7 +451,7 @@ describe('jira-client (integration)', () => {
 
     it('should add markdown comment successfully', async () => {
       const markdown = 'This is **bold** and *italic*\n\n- Item 1\n- Item 2';
-      const result = await addComment('test', 'TEST-1', markdown, true, 'json');
+      const result = await addComment('TEST-1', markdown, true, 'json');
 
       expect(result.success).toBe(true);
       expect(result.data).toHaveProperty('id', '10001');
@@ -467,7 +459,7 @@ describe('jira-client (integration)', () => {
 
     it('should handle multiline plain text comment', async () => {
       const text = 'Line 1\nLine 2\nLine 3';
-      const result = await addComment('test', 'TEST-1', text, false, 'json');
+      const result = await addComment('TEST-1', text, false, 'json');
 
       expect(result.success).toBe(true);
       expect(result.data).toHaveProperty('id');
@@ -475,32 +467,32 @@ describe('jira-client (integration)', () => {
 
     it('should handle complex markdown with code blocks', async () => {
       const markdown = '# Bug Report\n\n```javascript\nconst x = 1;\n```\n\nSteps:\n1. First step\n2. Second step';
-      const result = await addComment('test', 'TEST-1', markdown, true, 'json');
+      const result = await addComment('TEST-1', markdown, true, 'json');
 
       expect(result.success).toBe(true);
     });
 
     it('should handle empty comment', async () => {
-      const result = await addComment('test', 'TEST-1', '', false, 'json');
+      const result = await addComment('TEST-1', '', false, 'json');
 
       expect(result.success).toBe(true);
     });
 
     it('should format comment result as toon', async () => {
-      const result = await addComment('test', 'TEST-1', 'Test comment', false, 'toon');
+      const result = await addComment('TEST-1', 'Test comment', false, 'toon');
 
       expect(result.success).toBe(true);
       expect(typeof result.result).toBe('string');
     });
 
     it('should default markdown parameter to false', async () => {
-      const result = await addComment('test', 'TEST-1', 'Test comment');
+      const result = await addComment('TEST-1', 'Test comment');
 
       expect(result.success).toBe(true);
     });
 
     it('should default format to json', async () => {
-      const result = await addComment('test', 'TEST-1', 'Test comment', false);
+      const result = await addComment('TEST-1', 'Test comment', false);
 
       expect(result.success).toBe(true);
       expect(result.data).toBeDefined();
@@ -509,7 +501,7 @@ describe('jira-client (integration)', () => {
 
   describe('deleteIssue', () => {
     it('should delete issue successfully', async () => {
-      const result = await deleteIssue('test', 'TEST-1');
+      const result = await deleteIssue('TEST-1');
 
       expect(result.success).toBe(true);
       expect(result.result).toContain('deleted successfully');
@@ -519,7 +511,7 @@ describe('jira-client (integration)', () => {
 
   describe('getUser', () => {
     it('should get user by account ID', async () => {
-      const result = await getUser('test', '123', undefined, 'json');
+      const result = await getUser('123', undefined, 'json');
 
       expect(result.success).toBe(true);
       expect(result.data).toHaveProperty('accountId', '123');
@@ -527,14 +519,14 @@ describe('jira-client (integration)', () => {
     });
 
     it('should get user by username', async () => {
-      const result = await getUser('test', undefined, 'jane', 'json');
+      const result = await getUser(undefined, 'jane', 'json');
 
       expect(result.success).toBe(true);
       expect(result.data).toHaveProperty('displayName', 'Jane Smith');
     });
 
     it('should get current user when no params provided', async () => {
-      const result = await getUser('test', undefined, undefined, 'json');
+      const result = await getUser(undefined, undefined, 'json');
 
       expect(result.success).toBe(true);
       expect(result.data).toHaveProperty('accountId', 'current');
@@ -544,7 +536,7 @@ describe('jira-client (integration)', () => {
 
   describe('testConnection', () => {
     it('should test connection successfully', async () => {
-      const result = await testConnection('test');
+      const result = await testConnection();
 
       expect(result.success).toBe(true);
       expect(result.result).toContain('Connection successful');
@@ -554,7 +546,7 @@ describe('jira-client (integration)', () => {
     });
 
     it('should return server and user information', async () => {
-      const result = await testConnection('test');
+      const result = await testConnection();
 
       expect(result.success).toBe(true);
       expect(result.data).toHaveProperty('serverInfo');
@@ -578,7 +570,7 @@ describe('jira-client (integration)', () => {
         statusText: 'OK',
       });
 
-      const result = await downloadAttachment('test', 'TEST-123', '12345', undefined);
+      const result = await downloadAttachment('TEST-123', '12345', undefined);
 
       expect(result.success).toBe(true);
       expect(result.data).toHaveProperty('attachmentId', '12345');
@@ -606,7 +598,7 @@ describe('jira-client (integration)', () => {
         statusText: 'OK',
       });
 
-      const result = await downloadAttachment('test', 'TEST-123', '12345', customPath);
+      const result = await downloadAttachment('TEST-123', '12345', customPath);
 
       expect(result.success).toBe(true);
       expect(result.data).toHaveProperty('savedTo', customPath);
@@ -630,7 +622,7 @@ describe('jira-client (integration)', () => {
         statusText: 'Not Found',
       });
 
-      const result = await downloadAttachment('test', 'TEST-123', '12345', undefined);
+      const result = await downloadAttachment('TEST-123', '12345', undefined);
 
       expect(result.success).toBe(false);
       expect(result.error).toContain('Failed to download attachment');
@@ -639,13 +631,6 @@ describe('jira-client (integration)', () => {
       vi.mocked(fs.writeFileSync).mockRestore();
       bufferFromSpy.mockRestore();
       vi.mocked(fetch).mockRestore();
-    });
-
-    it('should handle non-existent profile', async () => {
-      const result = await downloadAttachment('nonexistent', 'TEST-123', '12345', undefined);
-
-      expect(result.success).toBe(false);
-      expect(result.error).toContain('not found');
     });
   });
 
@@ -672,7 +657,7 @@ describe('jira-client (integration)', () => {
       clearClients();
 
       // The error is thrown during initialization, so we need to catch it
-      await expect(listProjects('test', 'json')).rejects.toThrow('Failed to initialize Jira client');
+      await expect(listProjects('json')).rejects.toThrow('Failed to initialize Jira client');
     });
   });
 

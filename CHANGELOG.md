@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.4.1](https://github.com/hesedcasa/jira-api-cli/compare/jira-api-cli-v1.4.0...jira-api-cli-v1.4.1) (2026-01-29)
+
+
+### ♻️ Chores
+
+* improve test coverage and add comprehensive unit tests ([#42](https://github.com/hesedcasa/jira-api-cli/issues/42)) ([eb9696a](https://github.com/hesedcasa/jira-api-cli/commit/eb9696a889f1bf48088b66c5482ee39016b6097c))
+
 ## [1.4.0](https://github.com/hesedcasa/jira-api-cli/compare/jira-api-cli-v1.3.0...jira-api-cli-v1.4.0) (2025-12-17)
 
 

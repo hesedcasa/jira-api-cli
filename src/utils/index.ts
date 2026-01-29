@@ -1,5 +1,5 @@
 export { parseArguments } from './arg-parser.js';
-export { loadConfig } from './config-loader.js';
+export { loadConfig, setupConfig } from './config-loader.js';
 export type { Config } from './config-loader.js';
 export {
   listProjects,

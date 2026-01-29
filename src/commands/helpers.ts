@@ -1,10 +1,10 @@
 import { COMMANDS, COMMANDS_DETAIL, COMMANDS_INFO } from '../config/index.js';
 
 /**
- * Prints all available MySQL commands with their descriptions
+ * Prints all available Jira commands with their descriptions
  */
 export const printAvailableCommands = (): void => {
-  console.log('\nAvailable MySQL commands:');
+  console.log('\nAvailable Jira commands:');
   COMMANDS.forEach((name, i) => {
     const info = COMMANDS_INFO[i];
     console.log(`${i + 1}. ${name}: ${info}`);

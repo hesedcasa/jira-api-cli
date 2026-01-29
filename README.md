@@ -49,6 +49,7 @@ jira-api-cli config
 ```
 
 This will prompt you for:
+
 - Your Jira host URL (e.g., `https://your-domain.atlassian.net`)
 - Your Atlassian account email
 - Your API token

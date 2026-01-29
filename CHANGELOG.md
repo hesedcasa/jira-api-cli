@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.4.2](https://github.com/hesedcasa/jira-api-cli/compare/jira-api-cli-v1.4.1...jira-api-cli-v1.4.2) (2026-01-29)
+
+
+### 🛠️ Fixes
+
+* update error message ([194572d](https://github.com/hesedcasa/jira-api-cli/commit/194572dace5f2e7eada06f390c2e24eb3a29f05c))
+
 ## [1.4.1](https://github.com/hesedcasa/jira-api-cli/compare/jira-api-cli-v1.4.0...jira-api-cli-v1.4.1) (2026-01-29)
 
 

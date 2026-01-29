@@ -46,8 +46,7 @@ export class wrapper {
       this.printHelp();
     } catch (error: unknown) {
       const errorMessage = error instanceof Error ? error.message : String(error);
-      console.error('Failed to load configuration:', errorMessage);
-      console.error('\nPlease run: jira-api-cli config');
+      console.error(errorMessage);
       process.exit(1);
     }
   }
